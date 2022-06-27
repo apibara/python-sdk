@@ -26,7 +26,11 @@ def contract_event_filter(name, address=None):
     if isinstance(address, str):
         address = bytes.fromhex(address.replace("0x", ""))
 
-    topic_value = bytes.fromhex(hex(get_selector_from_name(name))[2:])
+    topic_hex = hex(get_selector_from_name(name))[2:]
+    # fromhex requires an even number of digits
+    if len(topic_hex) % 2 == 1:
+        topic_hex = '0' + topic_hex
+    topic_value = bytes.fromhex(topic_hex)
 
     topics = indexer_service_pb2.Topic(
         choices=[indexer_service_pb2.TopicValue(value=topic_value)]
