@@ -8,11 +8,9 @@ import grpc
 import click
 from click_help_colors import HelpColorsGroup
 
-from apibara.client import IndexerManagerClient
+from apibara.client import IndexerManagerClient, DEFAULT_APIBARA_SERVER_URL, contract_event_filter
 from apibara.model import Indexer
 
-
-_DEFAULT_SERVER_URL = "localhost:7171"
 
 
 def async_command(f):
@@ -39,7 +37,7 @@ def indexer():
 @click.argument("event-name", type=str)
 @click.option("--index-from-block", type=int, help="Start indexing from this block.")
 @click.option("--address", type=str, help="Only index events emitted by this contract.")
-@click.option("--server-url", type=str, default=_DEFAULT_SERVER_URL, help="Apibara server url.")
+@click.option("--server-url", type=str, default=DEFAULT_APIBARA_SERVER_URL, help="Apibara server url.")
 @async_command
 async def create(
     indexer_id, event_name, index_from_block=None, address=None, server_url=None
@@ -53,8 +51,9 @@ async def create(
     """
     async with IndexerManagerClient.insecure_channel(server_url) as app_manager:
         try:
+            filter = contract_event_filter(event_name, address)
             new_indexer = await app_manager.create_indexer(
-                indexer_id, event_name, index_from_block, address
+                indexer_id, index_from_block, filter
             )
             _format_indexer(new_indexer)
         except Exception as ex:
@@ -62,7 +61,7 @@ async def create(
 
 
 @indexer.command()
-@click.option("--server-url", type=str, default=_DEFAULT_SERVER_URL, help="Apibara server url.")
+@click.option("--server-url", type=str, default=DEFAULT_APIBARA_SERVER_URL, help="Apibara server url.")
 @async_command
 async def list(server_url=None):
     """List all available indexers."""
@@ -76,11 +75,11 @@ async def list(server_url=None):
 
 @indexer.command()
 @click.argument("indexer-id", type=str)
-@click.option("--server-url", type=str, default=_DEFAULT_SERVER_URL, help="Apibara server url.")
+@click.option("--server-url", type=str, default=DEFAULT_APIBARA_SERVER_URL, help="Apibara server url.")
 @async_command
 async def delete(indexer_id, server_url=None):
     """Delete the given indexer."""
-    async with IndexerManagerClient.insecure_channel("localhost:7171") as app_manager:
+    async with IndexerManagerClient.insecure_channel(server_url) as app_manager:
         try:
             indexer = await app_manager.delete_indexer(indexer_id)
             _format_indexer(indexer)

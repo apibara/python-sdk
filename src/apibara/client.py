@@ -11,6 +11,9 @@ from apibara.model import Indexer, IndexerConnected, NewBlock, NewEvents, Reorg
 from apibara.starknet import get_selector_from_name
 
 
+DEFAULT_APIBARA_SERVER_URL = "localhost:7171"
+
+
 def contract_event_filter(name, address=None):
     """
     Returns the `EventFilter` for the given event.
@@ -53,18 +56,20 @@ class IndexerManagerClient:
             response = await self._stub.GetIndexer(
                 indexer_service_pb2.GetIndexerRequest(id=id)
             )
-            if response and response.indexer:
+            if response and response.indexer and response.indexer.id:
                 return Indexer.from_proto(response.indexer)
         except grpc.aio.AioRpcError as ex:
             if ex.code() == grpc.StatusCode.NOT_FOUND:
                 return None
             raise
 
-    async def create_indexer(self, id, event_name, index_from_block, address):
-        filter = contract_event_filter(event_name, address)
+    async def create_indexer(self, id, index_from_block, filters):
+        if not isinstance(filters, list):
+            filters = [filters]
+
         response = await self._stub.CreateIndexer(
             indexer_service_pb2.CreateIndexerRequest(
-                id=id, index_from_block=index_from_block, filters=[filter]
+                id=id, index_from_block=index_from_block, filters=filters
             )
         )
 
