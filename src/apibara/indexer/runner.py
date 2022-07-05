@@ -1,13 +1,14 @@
 """Apibara indexer runner."""
 
 from dataclasses import dataclass
-from typing import Awaitable, Callable, List, TypeVar, Generic, Optional
+from typing import Awaitable, Callable, Generic, List, Optional, TypeVar
 
-from apibara.model import EventFilter, Indexer, NewEvents, NewBlock, Reorg
 from apibara.client import Client
 from apibara.indexer.indexer import IndexerClient
+from apibara.model import EventFilter, Indexer, NewBlock, NewEvents, Reorg
+from apibara.rpc import RpcClient
 from apibara.starknet import get_selector_from_name
-
+from apibara.starknet.rpc import StarkNetRpcClient
 
 UserContext = TypeVar("UserContext")
 
@@ -15,6 +16,7 @@ UserContext = TypeVar("UserContext")
 @dataclass
 class Info(Generic[UserContext]):
     context: UserContext
+    rpc_client: RpcClient
 
 
 NewEventsHandler = Callable[[Info, NewEvents], Awaitable[None]]
@@ -25,6 +27,7 @@ ReorgHandler = Callable[[Info, Reorg], Awaitable[None]]
 @dataclass
 class IndexerRunnerConfiguration:
     apibara_url: Optional[str] = None
+    rpc_url: Optional[str] = None
 
 
 class IndexerRunner(Generic[UserContext]):
@@ -122,7 +125,9 @@ class IndexerRunner(Generic[UserContext]):
         await self._new_events_handler(info, message)
 
     def _create_info(self) -> Info[UserContext]:
-        return Info(context=self._context)
+        # TODO: create RpcClient based on the apibara's network.
+        rpc_client = StarkNetRpcClient("https://starknet-goerli.apibara.com")
+        return Info(context=self._context, rpc_client=rpc_client)
 
     async def _maybe_create_indexer(self, indexer_client: IndexerClient) -> Indexer:
         if self._indexer_config is None:

@@ -1,8 +1,7 @@
 import asyncio
-from audioop import add
-from typing import Iterator
+from datetime import datetime
 
-from apibara import NewEvents, IndexerRunner, NewBlock
+from apibara import NewEvents, IndexerRunner, NewBlock, Info
 from apibara.model import EventFilter
 
 
@@ -10,14 +9,19 @@ INDEXER_ID = 'starknet-example'
 BRIQS_ADDRESS = '0x0266b1276d23ffb53d99da3f01be7e29fa024dd33cd7f7b1eb7a46c67891c9d0'
 
 
-async def handle_events(_info, block_events: NewEvents):
+async def handle_events(_info: Info, block_events: NewEvents):
     print('block ', block_events.block_number)
     for event in block_events.events:
         print('   ', event)
 
 
-async def handle_block(_info, block: NewBlock):
-    print('new live block', block.new_head.number)
+async def handle_block(info: Info, block: NewBlock):
+    # Use the provided RPC client to fetch the current block data.
+    # The client is already initialized with the correct network based
+    # on the indexer's settings.
+    block = await info.rpc_client.get_block_by_hash(block.new_head.hash)
+    block_time = datetime.fromtimestamp(block['accepted_time'])
+    print('new live block', block_time)
 
 
 async def main():
