@@ -8,9 +8,8 @@ import grpc
 import click
 from click_help_colors import HelpColorsGroup
 
-from apibara.client import IndexerManagerClient, DEFAULT_APIBARA_SERVER_URL, contract_event_filter
-from apibara.model import Indexer
-
+from apibara.client import Client
+from apibara.model import EventFilter, Indexer
 
 
 def async_command(f):
@@ -21,7 +20,9 @@ def async_command(f):
     return wrapper
 
 
-@click.group(cls=HelpColorsGroup, help_headers_color='cyan', help_options_color='magenta')
+@click.group(
+    cls=HelpColorsGroup, help_headers_color="cyan", help_options_color="magenta"
+)
 def cli():
     pass
 
@@ -37,22 +38,22 @@ def indexer():
 @click.argument("event-name", type=str)
 @click.option("--index-from-block", type=int, help="Start indexing from this block.")
 @click.option("--address", type=str, help="Only index events emitted by this contract.")
-@click.option("--server-url", type=str, default=DEFAULT_APIBARA_SERVER_URL, help="Apibara server url.")
+@click.option("--server-url", type=str, default=None, help="Apibara server url.")
 @async_command
 async def create(
     indexer_id, event_name, index_from_block=None, address=None, server_url=None
 ):
     """Create a new indexer.
-    
+
     The indexer is identified by its INDEXER_ID. By default, the indexer indexes all
     events with name EVENT_NAME from block 0.
 
     The indexer is not started after creation, you need to connect to it to start indexing.
     """
-    async with IndexerManagerClient.insecure_channel(server_url) as app_manager:
+    async with Client.connect(server_url) as client:
         try:
-            filter = contract_event_filter(event_name, address)
-            new_indexer = await app_manager.create_indexer(
+            filter = EventFilter.from_event_name(event_name, address)
+            new_indexer = await client.indexer_client().create_indexer(
                 indexer_id, index_from_block, filter
             )
             _format_indexer(new_indexer)
@@ -61,53 +62,56 @@ async def create(
 
 
 @indexer.command()
-@click.option("--server-url", type=str, default=DEFAULT_APIBARA_SERVER_URL, help="Apibara server url.")
+@click.option("--server-url", type=str, default=None, help="Apibara server url.")
 @async_command
 async def list(server_url=None):
     """List all available indexers."""
-    async with IndexerManagerClient.insecure_channel(server_url) as app_manager:
+    async with Client.connect(server_url) as client:
         try:
-            indexers = await app_manager.list_indexer()
+            indexers = await client.indexer_client().list_indexer()
             for indexer in indexers:
                 _format_indexer(indexer)
         except Exception as ex:
             _format_exception(ex)
 
+
 @indexer.command()
 @click.argument("indexer-id", type=str)
-@click.option("--server-url", type=str, default=DEFAULT_APIBARA_SERVER_URL, help="Apibara server url.")
+@click.option("--server-url", type=str, default=None, help="Apibara server url.")
 @async_command
 async def delete(indexer_id, server_url=None):
     """Delete the given indexer."""
-    async with IndexerManagerClient.insecure_channel(server_url) as app_manager:
+    async with Client.connect(server_url) as client:
         try:
-            indexer = await app_manager.delete_indexer(indexer_id)
+            indexer = await client.indexer_client().delete_indexer(indexer_id)
             _format_indexer(indexer)
         except Exception as ex:
             _format_exception(ex)
 
 
 def _format_indexer(indexer: Indexer):
-    click.secho(indexer.id, fg='cyan')
-    blocks = click.style(f'[{indexer.index_from_block}, {indexer.indexed_to_block}]', fg='magenta')
-    click.echo(f'    blocks: {blocks}')
-    click.echo(f'    filters:')
+    click.secho(indexer.id, fg="cyan")
+    blocks = click.style(
+        f"[{indexer.index_from_block}, {indexer.indexed_to_block}]", fg="magenta"
+    )
+    click.echo(f"    blocks: {blocks}")
+    click.echo(f"    filters:")
     for filter in indexer.filters:
-        if filter.address == b'' or filter.address is None:
-            address = 'any'
+        if filter.address == b"" or filter.address is None:
+            address = "any"
         else:
-            address = '0x' + filter.address.hex()
-        address = click.style(address, fg='magenta')
-        click.echo(f'    - address: {address}')
-        click.echo(f'      topics:')
+            address = "0x" + filter.address.hex()
+        address = click.style(address, fg="magenta")
+        click.echo(f"    - address: {address}")
+        click.echo(f"      topics:")
         for topic in filter.topics:
-            topic = click.style(topic, fg='magenta')
-            click.echo(f'      - {topic}')
+            topic = click.style(topic, fg="magenta")
+            click.echo(f"      - {topic}")
 
 
 def _format_exception(ex: Exception):
     if isinstance(ex, grpc.aio.AioRpcError):
-        message = f'({ex.code()}) {ex.details()}'
+        message = f"({ex.code()}) {ex.details()}"
     else:
         message = str(ex)
-    click.secho(message, fg='red')
+    click.secho(message, fg="red")
