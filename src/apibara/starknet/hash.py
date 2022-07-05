@@ -1,5 +1,3 @@
-"""StarkNet specific functions."""
-
 from eth_hash.auto import keccak
 
 _MASK_250 = 2**250 - 1

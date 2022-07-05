@@ -4,8 +4,8 @@ import asyncio
 from email.policy import default
 from functools import wraps
 
-import grpc
 import click
+import grpc
 from click_help_colors import HelpColorsGroup
 
 from apibara.client import Client
