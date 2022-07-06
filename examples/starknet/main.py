@@ -1,7 +1,9 @@
+import sys
 import asyncio
+from argparse import ArgumentParser
 from datetime import datetime
 
-from apibara import NewEvents, IndexerRunner, NewBlock, Info
+from apibara import NewEvents, IndexerRunner, NewBlock, Info, Client
 from apibara.model import EventFilter
 
 
@@ -24,7 +26,16 @@ async def handle_block(info: Info, block: NewBlock):
     print('new live block', block_time)
 
 
-async def main():
+async def main(args):
+    parser = ArgumentParser()
+    parser.add_argument("--reset", action="store_true", default=False)
+    args = parser.parse_args()
+
+    if args.reset:
+        async with Client.connect() as client:
+            await client.indexer_client().delete_indexer(INDEXER_ID)
+            print('Indexer deleted. Starting from beginning.')
+
     runner = IndexerRunner(
         indexer_id=INDEXER_ID,
         new_events_handler=handle_events,
@@ -51,4 +62,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(main(sys.argv[1:]))
