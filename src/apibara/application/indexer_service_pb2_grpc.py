@@ -2,8 +2,9 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from apibara.application import \
-    indexer_service_pb2 as apibara_dot_application_dot_indexer__service__pb2
+from apibara.application import (
+    indexer_service_pb2 as apibara_dot_application_dot_indexer__service__pb2,
+)
 
 
 class IndexerManagerStub(object):

@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 import aiohttp
 
@@ -7,7 +7,9 @@ from apibara.starknet.hash import get_selector_from_name
 
 
 class StarkNetRpcClient(RpcClient):
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: Optional[str]) -> None:
+        if url is None:
+            url = "https://starknet-goerli.apibara.com"
         self._url = url
 
     async def _request(self, method: str, params: List[Any]):

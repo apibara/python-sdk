@@ -9,8 +9,14 @@ from grpc.aio import AioRpcError
 
 import apibara.application.indexer_service_pb2 as indexer_service_pb2
 import apibara.application.indexer_service_pb2_grpc as indexer_service_pb2_grpc
-from apibara.model import (EventFilter, Indexer, IndexerConnected, NewBlock,
-                           NewEvents, Reorg)
+from apibara.model import (
+    EventFilter,
+    Indexer,
+    IndexerConnected,
+    NewBlock,
+    NewEvents,
+    Reorg,
+)
 
 
 class IndexerClient:
