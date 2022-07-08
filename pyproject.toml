@@ -1,8 +1,25 @@
 [tool.poetry]
 name = "apibara"
-version = "0.2.0"
+version = "0.3.0"
 description = "Apibara cliend SDK. Build web3-powered applications."
 authors = ["Francesco Ceccon <francesco@apibara.com>"]
+license = "Apache-2.0"
+readme = "README.rst"
+homepage = "https://www.apibara.com"
+repository= "https://github.com/apibara/python-sdk"
+keywords = [
+    "ethereum",
+    "web3",
+    "starknet"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9"
+]
 
 [tool.poetry.scripts]
 apibara = "apibara.cli:cli"

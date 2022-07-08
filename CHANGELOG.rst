@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Apibara Python SDK 0.3.0 (2022-07-08)
+-------------------------------------
+
+Added
+^^^^^
+
+- Introduce :code:`IndexerStorage` and :code:`Storage` classes to interface with
+document storage.
+
+
 Apibara Python SDK 0.2.0 (2022-07-05)
 -------------------------------------
 
