@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-package apibara.application.v1alpha1;
+package apibara.application.v1alpha2;
 
 service IndexerManager {
   rpc CreateIndexer(CreateIndexerRequest) returns (CreateIndexerResponse);
@@ -49,8 +49,9 @@ message Indexer {
 
 message CreateIndexerRequest {
   string id = 1;
-  uint64 index_from_block = 2;
-  repeated EventFilter filters = 3;
+  string network_name = 2;
+  uint64 index_from_block = 3;
+  repeated EventFilter filters = 4;
 }
 
 message CreateIndexerResponse {
@@ -94,12 +95,19 @@ message Event {
   repeated TopicValue data = 4;
 }
 
+message Version {
+  uint64 major = 1;
+  uint64 minor = 2;
+  uint64 patch = 3;
+}
+
 message ConnectIndexer {
   string id = 1;
 }
 
 message IndexerConnected {
   Indexer indexer = 1;
+  Version version = 2;
 }
 
 message AckBlock {
@@ -122,9 +130,8 @@ message Reorg {
 }
 
 message NewEvents {
-  bytes block_hash = 1;
-  uint64 block_number = 2;
-  repeated Event events = 3;
+  BlockHeader block = 1;
+  repeated Event events = 2;
 }
 
 message ConnectIndexerResponse {

@@ -45,12 +45,14 @@ class IndexerRunner(Generic[UserContext]):
         self,
         *,
         indexer_id: str,
+        network_name: str,
         new_events_handler: NewEventsHandler,
         config: Optional[IndexerRunnerConfiguration] = None,
     ) -> None:
         if config is None:
             config = IndexerRunnerConfiguration()
         self._indexer_id = indexer_id
+        self._network_name = network_name
         self._config = config
         self._new_events_handler = new_events_handler
         self._block_handler = None
@@ -118,8 +120,8 @@ class IndexerRunner(Generic[UserContext]):
                 elif isinstance(message, NewEvents):
                     await self._handle_new_events(message)
                     # inform server that events were handled
-                    await stream.ack_block(message.block_hash)
-                    logger.debug(f"Acked block 0x{message.block_hash.hex()}")
+                    await stream.ack_block(message.block.hash)
+                    logger.debug(f"Acked block 0x{message.block.hash.hex()}")
                 else:
                     raise RuntimeError(f"Unknown message: {message}")
 
@@ -152,7 +154,7 @@ class IndexerRunner(Generic[UserContext]):
                 topic = event.topics[0].lstrip(b"\x00")
                 name = self._event_topic_to_name_map.get(topic)
                 event.name = name
-        with self._block_context(message.block_number) as info:
+        with self._block_context(message.block.number) as info:
             await self._new_events_handler(info, message)
 
     async def _maybe_create_indexer(self, indexer_client: IndexerClient) -> Indexer:
@@ -161,7 +163,7 @@ class IndexerRunner(Generic[UserContext]):
         index_from_block = self._indexer_config["index_from_block"]
         filters = self._indexer_config["filters"]
         indexer = await indexer_client.create_indexer(
-            self._indexer_id, index_from_block, filters
+            self._indexer_id, self._network_name, index_from_block, filters
         )
         logger.debug("Created new indexer")
         return indexer

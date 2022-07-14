@@ -1,7 +1,6 @@
 import asyncio
 import sys
 from argparse import ArgumentParser
-from datetime import datetime
 from typing import List, NamedTuple
 
 from starknet_py.contract import DataTransformer, identifier_manager_from_abi
@@ -68,9 +67,8 @@ async def handle_events(info: Info, block_events: NewEvents):
     """Handle a group of briq's transfers grouped by block."""
     # Get information about the block so that all data can
     # be stored together with a block timestamp.
-    block = await info.rpc_client.get_block_by_hash(block_events.block_hash)
-    block_time = datetime.fromtimestamp(block["accepted_time"])
-    print(f"Handle block events: Block No. {block_events.block_number} - {block_time}")
+    block_time = block_events.block.timestamp
+    print(f"Handle block events: Block No. {block_events.block.number} - {block_time}")
 
     transfers = [decode_transfer_event(event.data) for event in block_events.events]
 
@@ -143,12 +141,12 @@ async def handle_events(info: Info, block_events: NewEvents):
 
 
 async def handle_block(info: Info, block: NewBlock):
-    # Use the provided RPC client to fetch the current block data.
-    # The client is already initialized with the correct network based
-    # on the indexer's settings.
-    block = await info.rpc_client.get_block_by_hash(block.new_head.hash)
-    block_time = datetime.fromtimestamp(block["accepted_time"])
-    block["timestamp"] = block_time.isoformat()
+    # Store the block information in the database.
+    block = {
+        "number": block.new_head.number,
+        "hash": block.new_head.hash,
+        "timestamp": block.new_head.timestamp.isoformat(),
+    }
     await info.storage.insert_one("blocks", block)
 
 
@@ -168,6 +166,7 @@ async def main(args):
         config=IndexerRunnerConfiguration(
             storage_url="mongodb://apibara:apibara@localhost:27017"
         ),
+        network_name="starknet-goerli",
         indexer_id=indexer_id,
         new_events_handler=handle_events,
     )
@@ -181,7 +180,7 @@ async def main(args):
     # event names and StarkNet events.
     runner.create_if_not_exists(
         filters=[EventFilter.from_event_name(name="Transfer", address=briqs_address)],
-        index_from_block=201_000,
+        index_from_block=200_000,
     )
 
     await runner.run()

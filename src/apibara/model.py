@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional, Union
 
+from tomlkit import integer
+
 import apibara.application.indexer_service_pb2 as indexer_service_pb2
 from apibara.starknet import get_selector_from_name
 
@@ -88,13 +90,26 @@ class Indexer:
 
 
 @dataclass
+class Version:
+    major: int
+    minor: int
+    patch: int
+
+    @staticmethod
+    def from_proto(p: indexer_service_pb2.Version):
+        return Version(major=p.major, minor=p.minor, patch=p.patch)
+
+
+@dataclass
 class IndexerConnected:
     indexer: Indexer
+    version: Version
 
     @staticmethod
     def from_proto(p: indexer_service_pb2.IndexerConnected):
-        app = Indexer.from_proto(p.indexer)
-        return IndexerConnected(app)
+        indexer = Indexer.from_proto(p.indexer)
+        version = Version.from_proto(p.version)
+        return IndexerConnected(indexer=indexer, version=version)
 
 
 @dataclass
@@ -162,14 +177,14 @@ class Reorg:
 
 @dataclass
 class NewEvents:
-    block_hash: bytes
-    block_number: int
+    block: BlockHeader
     events: List[Event]
 
     @staticmethod
     def from_proto(p: indexer_service_pb2.NewEvents):
+        block = BlockHeader.from_proto(p.block)
         events = [Event.from_proto(ev) for ev in p.events]
-        return NewEvents(bytes(p.block_hash), p.block_number, events)
+        return NewEvents(block, events)
 
     def __str__(self) -> str:
-        return f"NewEvents(block_hash=0x{self.block_hash.hex()}, block_number={self.block_number}, ...{len(self.events)} events)"
+        return f"NewEvents(block={self.block}, ...{len(self.events)} events)"

@@ -31,12 +31,19 @@ class IndexerClient:
             raise
 
     async def create_indexer(
-        self, id: str, index_from_block: int, filters: List[EventFilter]
+        self,
+        id: str,
+        network_name: str,
+        index_from_block: int,
+        filters: List[EventFilter],
     ) -> Optional[Indexer]:
         filters = [f.to_proto() for f in filters]
         response = await self._stub.CreateIndexer(
             indexer_service_pb2.CreateIndexerRequest(
-                id=id, index_from_block=index_from_block, filters=filters
+                id=id,
+                network_name=network_name,
+                index_from_block=index_from_block,
+                filters=filters,
             )
         )
 
@@ -72,6 +79,16 @@ class IndexerClient:
 
         if not isinstance(connected_message, IndexerConnected):
             raise RuntimeError(f"Could not connect indexer {indexer.id}")
+
+        # Check server version with the one supported.
+        # While in alpha it's acceptable to have breaking changes
+        # with no backward compatibility.
+        server_version = connected_message.version
+        server_version = (server_version.major, server_version.minor)
+        if server_version != (0, 2):
+            raise RuntimeError(
+                f"connected to apibara version {server_version}: not supported"
+            )
 
         # Yield stream to the caller.
         yield stream
