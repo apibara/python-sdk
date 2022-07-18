@@ -5,13 +5,15 @@ from dataclasses import dataclass
 from typing import Awaitable, Callable, Generic, List, Optional, TypeVar
 
 import backoff
+import sha3
 from grpc.aio import AioRpcError
 
 from apibara.client import Client
 from apibara.indexer.indexer import IndexerClient
 from apibara.indexer.storage import IndexerStorage, Storage
 from apibara.logging import logger
-from apibara.model import EventFilter, Indexer, NewBlock, NewEvents, Reorg
+from apibara.model import (EthereumEvent, Event, EventFilter, Indexer,
+                           NewBlock, NewEvents, Reorg, StarkNetEvent)
 from apibara.rpc import RpcClient
 from apibara.starknet import get_selector_from_name
 from apibara.starknet.rpc import StarkNetRpcClient
@@ -64,7 +66,7 @@ class IndexerRunner(Generic[UserContext]):
         self._rpc_client = StarkNetRpcClient(self._config.rpc_url)
 
         self._indexer_config = None
-        self._event_topic_to_name_map = None
+        self._event_name_map = dict()
 
     def create_if_not_exists(
         self,
@@ -106,11 +108,10 @@ class IndexerRunner(Generic[UserContext]):
             else:
                 indexer = existing
 
-            self._initialize_event_topic_map()
-
             await self._run_indexer(indexer_client, indexer)
 
     async def _run_indexer(self, client: IndexerClient, indexer: Indexer):
+        self._create_event_map(indexer)
         async with client.connect(indexer) as stream:
             async for message in stream:
                 if isinstance(message, NewBlock):
@@ -148,12 +149,8 @@ class IndexerRunner(Generic[UserContext]):
 
     async def _handle_new_events(self, message: NewEvents):
         assert self._new_events_handler is not None
-        # Add event name to events
         for event in message.events:
-            if len(event.topics) == 1:
-                topic = event.topics[0].lstrip(b"\x00")
-                name = self._event_topic_to_name_map.get(topic)
-                event.name = name
+            event.name = self._get_event_name(event)
         with self._block_context(message.block.number) as info:
             await self._new_events_handler(info, message)
 
@@ -168,23 +165,25 @@ class IndexerRunner(Generic[UserContext]):
         logger.debug("Created new indexer")
         return indexer
 
-    def _initialize_event_topic_map(self):
-        self._event_topic_to_name_map = dict()
-        if self._indexer_config is None:
-            return
-        filters = self._indexer_config["filters"]
-        if filters is None:
-            return
+    def _create_event_map(self, indexer: Indexer):
+        if indexer.network.type == "evm":
+            return self._create_evm_event_map()
+        elif indexer.network.type == "starknet":
+            return self._create_starknet_event_map()
 
-        result = dict()
-        for filter in filters:
-            if filter.name is None:
-                continue
-            topic_hex = hex(get_selector_from_name(filter.name))[2:]
-            # fromhex requires an even number of digits
-            if len(topic_hex) % 2 == 1:
-                topic_hex = "0" + topic_hex
-            topic_value = bytes.fromhex(topic_hex).lstrip(b"\x00")
-            result[topic_value] = filter.name
+    def _create_evm_event_map(self):
+        for filter in self._indexer_config["filters"]:
+            signature_hash = sha3.keccak_256(filter.signature.encode("ascii")).digest()
+            self._event_name_map[signature_hash] = filter.signature
 
-        self._event_topic_to_name_map = result
+    def _create_starknet_event_map(self):
+        for filter in self._indexer_config["filters"]:
+            signature_hash = get_selector_from_name(filter.signature)
+            self._event_name_map[signature_hash] = filter.signature
+
+    def _get_event_name(self, event: Event):
+        if isinstance(event, StarkNetEvent):
+            hash = int.from_bytes(event.topics[0], "big")
+            return self._event_name_map.get(hash)
+        else:
+            return self._event_name_map.get(event.topics[0])

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-package apibara.application.v1alpha2;
+package apibara.application.v1alpha3;
 
 service IndexerManager {
   rpc CreateIndexer(CreateIndexerRequest) returns (CreateIndexerResponse);
@@ -18,14 +18,8 @@ message EventFilter {
   // Address of the contract emitting the event.
   bytes address = 1;
 
-  // Filter topics.
-  repeated Topic topics = 2;
-}
-
-// Event topic.
-message Topic {
-  // Topic possible values. The values are OR of each other.
-  repeated TopicValue choices = 1;
+  // Event signature.
+  string signature = 2;
 }
 
 // Topic value.
@@ -34,17 +28,33 @@ message TopicValue {
   bytes value = 1;
 }
 
+message StarkNetNetwork {
+  string name = 1;
+}
+
+message EthereumNetwork {
+  string name = 2;
+}
+
+message Network {
+  oneof network {
+    StarkNetNetwork starknet = 1;
+    EthereumNetwork ethereum = 2;
+  }
+}
+
 // Represent the indexer's state.
 message Indexer {
-  // TODO: add chain id, application id
   // The unique indexer id.
   string id = 1;
+  // The network indexed.
+  Network network = 2;
   // The latest block the indexer inedxed.
-  optional uint64 indexed_to_block = 2;
+  optional uint64 indexed_to_block = 3;
   // The block from which to start indexing.
-  uint64 index_from_block = 3;
+  uint64 index_from_block = 4;
   // Filters that produce the events this indexer ingests.
-  repeated EventFilter filters = 4;
+  repeated EventFilter filters = 5;
 }
 
 message CreateIndexerRequest {
@@ -88,11 +98,25 @@ message BlockHeader {
   google.protobuf.Timestamp timestamp = 4;
 }
 
-message Event {
+message StarkNetEvent {
   bytes address = 1;
-  uint64 block_index = 2;
+  uint64 log_index = 2;
   repeated TopicValue topics = 3;
   repeated TopicValue data = 4;
+}
+
+message EthereumEvent {
+  bytes address = 1;
+  uint64 log_index = 2;
+  repeated TopicValue topics = 3;
+  bytes data = 4;
+}
+
+message Event {
+  oneof event {
+    StarkNetEvent starknet = 1;
+    EthereumEvent ethereum = 2;
+  }
 }
 
 message Version {

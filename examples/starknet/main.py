@@ -70,6 +70,9 @@ async def handle_events(info: Info, block_events: NewEvents):
     block_time = block_events.block.timestamp
     print(f"Handle block events: Block No. {block_events.block.number} - {block_time}")
 
+    for ev in block_events.events:
+        print(ev.name)
+
     transfers = [decode_transfer_event(event.data) for event in block_events.events]
 
     print("    Transfers decoded.")

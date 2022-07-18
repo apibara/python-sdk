@@ -16,27 +16,27 @@ class IndexerManagerStub(object):
             channel: A grpc.Channel.
         """
         self.CreateIndexer = channel.unary_unary(
-            "/apibara.application.v1alpha2.IndexerManager/CreateIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/CreateIndexer",
             request_serializer=apibara_dot_application_dot_indexer__service__pb2.CreateIndexerRequest.SerializeToString,
             response_deserializer=apibara_dot_application_dot_indexer__service__pb2.CreateIndexerResponse.FromString,
         )
         self.GetIndexer = channel.unary_unary(
-            "/apibara.application.v1alpha2.IndexerManager/GetIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/GetIndexer",
             request_serializer=apibara_dot_application_dot_indexer__service__pb2.GetIndexerRequest.SerializeToString,
             response_deserializer=apibara_dot_application_dot_indexer__service__pb2.GetIndexerResponse.FromString,
         )
         self.ListIndexer = channel.unary_unary(
-            "/apibara.application.v1alpha2.IndexerManager/ListIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/ListIndexer",
             request_serializer=apibara_dot_application_dot_indexer__service__pb2.ListIndexerRequest.SerializeToString,
             response_deserializer=apibara_dot_application_dot_indexer__service__pb2.ListIndexerResponse.FromString,
         )
         self.DeleteIndexer = channel.unary_unary(
-            "/apibara.application.v1alpha2.IndexerManager/DeleteIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/DeleteIndexer",
             request_serializer=apibara_dot_application_dot_indexer__service__pb2.DeleteIndexerRequest.SerializeToString,
             response_deserializer=apibara_dot_application_dot_indexer__service__pb2.DeleteIndexerResponse.FromString,
         )
         self.ConnectIndexer = channel.stream_stream(
-            "/apibara.application.v1alpha2.IndexerManager/ConnectIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/ConnectIndexer",
             request_serializer=apibara_dot_application_dot_indexer__service__pb2.ConnectIndexerRequest.SerializeToString,
             response_deserializer=apibara_dot_application_dot_indexer__service__pb2.ConnectIndexerResponse.FromString,
         )
@@ -105,7 +105,7 @@ def add_IndexerManagerServicer_to_server(servicer, server):
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        "apibara.application.v1alpha2.IndexerManager", rpc_method_handlers
+        "apibara.application.v1alpha3.IndexerManager", rpc_method_handlers
     )
     server.add_generic_rpc_handlers((generic_handler,))
 
@@ -130,7 +130,7 @@ class IndexerManager(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/apibara.application.v1alpha2.IndexerManager/CreateIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/CreateIndexer",
             apibara_dot_application_dot_indexer__service__pb2.CreateIndexerRequest.SerializeToString,
             apibara_dot_application_dot_indexer__service__pb2.CreateIndexerResponse.FromString,
             options,
@@ -159,7 +159,7 @@ class IndexerManager(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/apibara.application.v1alpha2.IndexerManager/GetIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/GetIndexer",
             apibara_dot_application_dot_indexer__service__pb2.GetIndexerRequest.SerializeToString,
             apibara_dot_application_dot_indexer__service__pb2.GetIndexerResponse.FromString,
             options,
@@ -188,7 +188,7 @@ class IndexerManager(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/apibara.application.v1alpha2.IndexerManager/ListIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/ListIndexer",
             apibara_dot_application_dot_indexer__service__pb2.ListIndexerRequest.SerializeToString,
             apibara_dot_application_dot_indexer__service__pb2.ListIndexerResponse.FromString,
             options,
@@ -217,7 +217,7 @@ class IndexerManager(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            "/apibara.application.v1alpha2.IndexerManager/DeleteIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/DeleteIndexer",
             apibara_dot_application_dot_indexer__service__pb2.DeleteIndexerRequest.SerializeToString,
             apibara_dot_application_dot_indexer__service__pb2.DeleteIndexerResponse.FromString,
             options,
@@ -246,7 +246,7 @@ class IndexerManager(object):
         return grpc.experimental.stream_stream(
             request_iterator,
             target,
-            "/apibara.application.v1alpha2.IndexerManager/ConnectIndexer",
+            "/apibara.application.v1alpha3.IndexerManager/ConnectIndexer",
             apibara_dot_application_dot_indexer__service__pb2.ConnectIndexerRequest.SerializeToString,
             apibara_dot_application_dot_indexer__service__pb2.ConnectIndexerResponse.FromString,
             options,

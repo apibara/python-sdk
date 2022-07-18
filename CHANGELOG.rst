@@ -1,6 +1,21 @@
 Changelog
 =========
 
+Apibara Python SDK 0.4.0 (2022-07-18)
+-------------------------------------
+
+Added
+^^^^^
+
+- Introduce support for EVM-compatible networks.
+
+
+Changed
+^^^^^^^
+
+- Change minimum Apibara version required to :code:`0.2.0`.
+
+
 Apibara Python SDK 0.3.0 (2022-07-08)
 -------------------------------------
 
