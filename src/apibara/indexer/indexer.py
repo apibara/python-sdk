@@ -85,7 +85,7 @@ class IndexerClient:
         # with no backward compatibility.
         server_version = connected_message.version
         server_version = (server_version.major, server_version.minor)
-        if server_version != (0, 2):
+        if server_version != (0, 3):
             raise RuntimeError(
                 f"connected to apibara version {server_version}: not supported"
             )
