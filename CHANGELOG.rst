@@ -1,6 +1,16 @@
 Changelog
 =========
 
+
+Apibara Python SDK 0.4.0 (2022-07-21)
+-------------------------------------
+
+Fixed
+^^^^^
+
+ - Connection issue with Apibara 0.3.0
+
+
 Apibara Python SDK 0.4.0 (2022-07-18)
 -------------------------------------
 
