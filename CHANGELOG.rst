@@ -2,7 +2,23 @@ Changelog
 =========
 
 
-Apibara Python SDK 0.4.0 (2022-07-21)
+Apibara Python SDK 0.4.2 (2022-07-24)
+-------------------------------------
+
+Added
+^^^^^
+
+ - Option to sort returned elements to :code:`Storage.find`.
+
+
+Fixed
+^^^^^
+
+ - Fix :code:`Storage.find` default parameters.
+ - Fix :code:`Storage.delete_one` and :code:`Storage.delete_many`. They now delete only current values.
+
+
+Apibara Python SDK 0.4.1 (2022-07-21)
 -------------------------------------
 
 Fixed
