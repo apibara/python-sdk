@@ -12,8 +12,16 @@ from apibara.client import Client
 from apibara.indexer.indexer import IndexerClient
 from apibara.indexer.storage import IndexerStorage, Storage
 from apibara.logging import logger
-from apibara.model import (EthereumEvent, Event, EventFilter, Indexer,
-                           NewBlock, NewEvents, Reorg, StarkNetEvent)
+from apibara.model import (
+    EthereumEvent,
+    Event,
+    EventFilter,
+    Indexer,
+    NewBlock,
+    NewEvents,
+    Reorg,
+    StarkNetEvent,
+)
 from apibara.rpc import RpcClient
 from apibara.starknet import get_selector_from_name
 from apibara.starknet.rpc import StarkNetRpcClient

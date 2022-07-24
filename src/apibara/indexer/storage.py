@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from typing import Any, Iterable, Iterator, Optional
 
 from pymongo import MongoClient
+import pymongo
 from pymongo.database import Database
 
 Document = dict[str, Any]
@@ -47,11 +48,13 @@ class Storage:
         self._db[collection].insert_many(docs)
 
     async def delete_one(self, collection: str, filter: Filter):
+        self._add_current_block_to_filter(filter)
         self._db[collection].update_one(
             filter, {"$set": {"_chain.valid_to": self._block_number}}
         )
 
     async def delete_many(self, collection: str, filter: Filter):
+        self._add_current_block_to_filter(filter)
         self._db[collection].update_many(
             filter, {"$set": {"_chain.valid_to": self._block_number}}
         )
@@ -64,12 +67,17 @@ class Storage:
         self,
         collection: str,
         filter: Filter,
+        sort: Optional[dict[str, int]] = None,
         projection: Optional[Projection] = None,
-        skip: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> Iterator[dict]:
+        skip: int = 0,
+        limit: int = 0,
+    ) -> Iterable[dict]:
         self._add_current_block_to_filter(filter)
-        return self._db[collection].find(filter, projection, skip, limit)
+        cursor = self._db[collection].find(filter, projection, skip, limit)
+        if sort is not None:
+            for field, order in sort.items():
+                cursor = cursor.sort(field, order)
+        return cursor
 
     async def find_one_and_replace(
         self,

@@ -52,6 +52,20 @@ async def test_insert_many(storage: IndexerStorage, player, extra_player):
 
 
 @pytest.mark.asyncio
+async def test_find(storage: IndexerStorage, player):
+    players = [{"idx": idx, **player} for idx in range(100)]
+    with storage.create_storage_for_block(100) as s:
+        await s.insert_many("players", players)
+        result = await s.find(
+            "players", {"address": "0xA"}, sort={"idx": -1}, skip=10, limit=10
+        )
+        result = list(result)
+        assert len(result) == 10
+        assert result[0]["idx"] == 89
+        assert result[-1]["idx"] == 80
+
+
+@pytest.mark.asyncio
 async def test_find_one_and_replace(storage: IndexerStorage, player):
     with storage.create_storage_for_block(100) as s:
         await s.insert_one("players", player)
@@ -87,3 +101,29 @@ async def test_find_one_and_update(storage: IndexerStorage, player):
     with storage.create_storage_for_block(300) as s:
         arnold = await s.find_one("players", {"address": "0xA"})
         assert arnold["player_name"] == "Arnold"
+
+
+@pytest.mark.asyncio
+async def test_delete_many(storage: IndexerStorage, player, extra_player):
+    with storage.create_storage_for_block(100) as s:
+        await s.insert_many("players", [player, extra_player])
+        bob = await s.find_one("players", {"address": "0xB"})
+        assert bob is not None
+
+    with storage.create_storage_for_block(200) as s:
+        await s.delete_many("players", {"address": "0xB"})
+        bob = await s.find_one("players", {"address": "0xB"})
+        assert bob is None
+
+
+@pytest.mark.asyncio
+async def test_delete_one(storage: IndexerStorage, player):
+    with storage.create_storage_for_block(100) as s:
+        await s.insert_one("players", player)
+        bob = await s.find_one("players", {"address": "0xA"})
+        assert bob is not None
+
+    with storage.create_storage_for_block(200) as s:
+        await s.delete_one("players", {"address": "0xA"})
+        bob = await s.find_one("players", {"address": "0xA"})
+        assert bob is None
