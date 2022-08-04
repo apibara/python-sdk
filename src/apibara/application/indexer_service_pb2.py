@@ -15,8 +15,9 @@ _sym_db = _symbol_database.Default()
 
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
+
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n)apibara/application/indexer_service.proto\x12\x1c\x61pibara.application.v1alpha3\x1a\x1fgoogle/protobuf/timestamp.proto"1\n\x0b\x45ventFilter\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\t"\x1b\n\nTopicValue\x12\r\n\x05value\x18\x01 \x01(\x0c"\x1f\n\x0fStarkNetNetwork\x12\x0c\n\x04name\x18\x01 \x01(\t"\x1f\n\x0f\x45thereumNetwork\x12\x0c\n\x04name\x18\x02 \x01(\t"\x9a\x01\n\x07Network\x12\x41\n\x08starknet\x18\x01 \x01(\x0b\x32-.apibara.application.v1alpha3.StarkNetNetworkH\x00\x12\x41\n\x08\x65thereum\x18\x02 \x01(\x0b\x32-.apibara.application.v1alpha3.EthereumNetworkH\x00\x42\t\n\x07network"\xd7\x01\n\x07Indexer\x12\n\n\x02id\x18\x01 \x01(\t\x12\x36\n\x07network\x18\x02 \x01(\x0b\x32%.apibara.application.v1alpha3.Network\x12\x1d\n\x10indexed_to_block\x18\x03 \x01(\x04H\x00\x88\x01\x01\x12\x18\n\x10index_from_block\x18\x04 \x01(\x04\x12:\n\x07\x66ilters\x18\x05 \x03(\x0b\x32).apibara.application.v1alpha3.EventFilterB\x13\n\x11_indexed_to_block"\x8e\x01\n\x14\x43reateIndexerRequest\x12\n\n\x02id\x18\x01 \x01(\t\x12\x14\n\x0cnetwork_name\x18\x02 \x01(\t\x12\x18\n\x10index_from_block\x18\x03 \x01(\x04\x12:\n\x07\x66ilters\x18\x04 \x03(\x0b\x32).apibara.application.v1alpha3.EventFilter"O\n\x15\x43reateIndexerResponse\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer"\x1f\n\x11GetIndexerRequest\x12\n\n\x02id\x18\x01 \x01(\t"L\n\x12GetIndexerResponse\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer"\x14\n\x12ListIndexerRequest"N\n\x13ListIndexerResponse\x12\x37\n\x08indexers\x18\x01 \x03(\x0b\x32%.apibara.application.v1alpha3.Indexer""\n\x14\x44\x65leteIndexerRequest\x12\n\n\x02id\x18\x01 \x01(\t"O\n\x15\x44\x65leteIndexerResponse\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer"\x84\x01\n\x0b\x42lockHeader\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12\x18\n\x0bparent_hash\x18\x02 \x01(\x0cH\x00\x88\x01\x01\x12\x0e\n\x06number\x18\x03 \x01(\x04\x12-\n\ttimestamp\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x0e\n\x0c_parent_hash"\xa5\x01\n\rStarkNetEvent\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tlog_index\x18\x02 \x01(\x04\x12\x38\n\x06topics\x18\x03 \x03(\x0b\x32(.apibara.application.v1alpha3.TopicValue\x12\x36\n\x04\x64\x61ta\x18\x04 \x03(\x0b\x32(.apibara.application.v1alpha3.TopicValue"{\n\rEthereumEvent\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tlog_index\x18\x02 \x01(\x04\x12\x38\n\x06topics\x18\x03 \x03(\x0b\x32(.apibara.application.v1alpha3.TopicValue\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c"\x92\x01\n\x05\x45vent\x12?\n\x08starknet\x18\x01 \x01(\x0b\x32+.apibara.application.v1alpha3.StarkNetEventH\x00\x12?\n\x08\x65thereum\x18\x02 \x01(\x0b\x32+.apibara.application.v1alpha3.EthereumEventH\x00\x42\x07\n\x05\x65vent"6\n\x07Version\x12\r\n\x05major\x18\x01 \x01(\x04\x12\r\n\x05minor\x18\x02 \x01(\x04\x12\r\n\x05patch\x18\x03 \x01(\x04"\x1c\n\x0e\x43onnectIndexer\x12\n\n\x02id\x18\x01 \x01(\t"\x82\x01\n\x10IndexerConnected\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer\x12\x36\n\x07version\x18\x02 \x01(\x0b\x32%.apibara.application.v1alpha3.Version"\x18\n\x08\x41\x63kBlock\x12\x0c\n\x04hash\x18\x01 \x01(\x0c"\x9a\x01\n\x15\x43onnectIndexerRequest\x12?\n\x07\x63onnect\x18\x01 \x01(\x0b\x32,.apibara.application.v1alpha3.ConnectIndexerH\x00\x12\x35\n\x03\x61\x63k\x18\x03 \x01(\x0b\x32&.apibara.application.v1alpha3.AckBlockH\x00\x42\t\n\x07message"G\n\x08NewBlock\x12;\n\x08new_head\x18\x01 \x01(\x0b\x32).apibara.application.v1alpha3.BlockHeader"D\n\x05Reorg\x12;\n\x08new_head\x18\x01 \x01(\x0b\x32).apibara.application.v1alpha3.BlockHeader"z\n\tNewEvents\x12\x38\n\x05\x62lock\x18\x01 \x01(\x0b\x32).apibara.application.v1alpha3.BlockHeader\x12\x33\n\x06\x65vents\x18\x02 \x03(\x0b\x32#.apibara.application.v1alpha3.Event"\x9a\x02\n\x16\x43onnectIndexerResponse\x12\x43\n\tconnected\x18\x01 \x01(\x0b\x32..apibara.application.v1alpha3.IndexerConnectedH\x00\x12;\n\tnew_block\x18\x02 \x01(\x0b\x32&.apibara.application.v1alpha3.NewBlockH\x00\x12\x34\n\x05reorg\x18\x03 \x01(\x0b\x32#.apibara.application.v1alpha3.ReorgH\x00\x12=\n\nnew_events\x18\x04 \x01(\x0b\x32\'.apibara.application.v1alpha3.NewEventsH\x00\x42\t\n\x07message2\xea\x04\n\x0eIndexerManager\x12x\n\rCreateIndexer\x12\x32.apibara.application.v1alpha3.CreateIndexerRequest\x1a\x33.apibara.application.v1alpha3.CreateIndexerResponse\x12o\n\nGetIndexer\x12/.apibara.application.v1alpha3.GetIndexerRequest\x1a\x30.apibara.application.v1alpha3.GetIndexerResponse\x12r\n\x0bListIndexer\x12\x30.apibara.application.v1alpha3.ListIndexerRequest\x1a\x31.apibara.application.v1alpha3.ListIndexerResponse\x12x\n\rDeleteIndexer\x12\x32.apibara.application.v1alpha3.DeleteIndexerRequest\x1a\x33.apibara.application.v1alpha3.DeleteIndexerResponse\x12\x7f\n\x0e\x43onnectIndexer\x12\x33.apibara.application.v1alpha3.ConnectIndexerRequest\x1a\x34.apibara.application.v1alpha3.ConnectIndexerResponse(\x01\x30\x01\x62\x06proto3'
+    b'\n)apibara/application/indexer_service.proto\x12\x1c\x61pibara.application.v1alpha3\x1a\x1fgoogle/protobuf/timestamp.proto"1\n\x0b\x45ventFilter\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\t"\x1b\n\nTopicValue\x12\r\n\x05value\x18\x01 \x01(\x0c"\x1f\n\x0fStarkNetNetwork\x12\x0c\n\x04name\x18\x01 \x01(\t"\x1f\n\x0f\x45thereumNetwork\x12\x0c\n\x04name\x18\x02 \x01(\t"\x9a\x01\n\x07Network\x12\x41\n\x08starknet\x18\x01 \x01(\x0b\x32-.apibara.application.v1alpha3.StarkNetNetworkH\x00\x12\x41\n\x08\x65thereum\x18\x02 \x01(\x0b\x32-.apibara.application.v1alpha3.EthereumNetworkH\x00\x42\t\n\x07network"\xd7\x01\n\x07Indexer\x12\n\n\x02id\x18\x01 \x01(\t\x12\x36\n\x07network\x18\x02 \x01(\x0b\x32%.apibara.application.v1alpha3.Network\x12\x1d\n\x10indexed_to_block\x18\x03 \x01(\x04H\x00\x88\x01\x01\x12\x18\n\x10index_from_block\x18\x04 \x01(\x04\x12:\n\x07\x66ilters\x18\x05 \x03(\x0b\x32).apibara.application.v1alpha3.EventFilterB\x13\n\x11_indexed_to_block"\x8e\x01\n\x14\x43reateIndexerRequest\x12\n\n\x02id\x18\x01 \x01(\t\x12\x14\n\x0cnetwork_name\x18\x02 \x01(\t\x12\x18\n\x10index_from_block\x18\x03 \x01(\x04\x12:\n\x07\x66ilters\x18\x04 \x03(\x0b\x32).apibara.application.v1alpha3.EventFilter"O\n\x15\x43reateIndexerResponse\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer"\x1f\n\x11GetIndexerRequest\x12\n\n\x02id\x18\x01 \x01(\t"L\n\x12GetIndexerResponse\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer"\x14\n\x12ListIndexerRequest"N\n\x13ListIndexerResponse\x12\x37\n\x08indexers\x18\x01 \x03(\x0b\x32%.apibara.application.v1alpha3.Indexer""\n\x14\x44\x65leteIndexerRequest\x12\n\n\x02id\x18\x01 \x01(\t"O\n\x15\x44\x65leteIndexerResponse\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer"\x84\x01\n\x0b\x42lockHeader\x12\x0c\n\x04hash\x18\x01 \x01(\x0c\x12\x18\n\x0bparent_hash\x18\x02 \x01(\x0cH\x00\x88\x01\x01\x12\x0e\n\x06number\x18\x03 \x01(\x04\x12-\n\ttimestamp\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x0e\n\x0c_parent_hash"\xbf\x01\n\rStarkNetEvent\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tlog_index\x18\x02 \x01(\x04\x12\x38\n\x06topics\x18\x03 \x03(\x0b\x32(.apibara.application.v1alpha3.TopicValue\x12\x36\n\x04\x64\x61ta\x18\x04 \x03(\x0b\x32(.apibara.application.v1alpha3.TopicValue\x12\x18\n\x10transaction_hash\x18\x05 \x01(\x0c"\x95\x01\n\rEthereumEvent\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tlog_index\x18\x02 \x01(\x04\x12\x38\n\x06topics\x18\x03 \x03(\x0b\x32(.apibara.application.v1alpha3.TopicValue\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x12\x18\n\x10transaction_hash\x18\x05 \x01(\x0c"\x92\x01\n\x05\x45vent\x12?\n\x08starknet\x18\x01 \x01(\x0b\x32+.apibara.application.v1alpha3.StarkNetEventH\x00\x12?\n\x08\x65thereum\x18\x02 \x01(\x0b\x32+.apibara.application.v1alpha3.EthereumEventH\x00\x42\x07\n\x05\x65vent"6\n\x07Version\x12\r\n\x05major\x18\x01 \x01(\x04\x12\r\n\x05minor\x18\x02 \x01(\x04\x12\r\n\x05patch\x18\x03 \x01(\x04"\x1c\n\x0e\x43onnectIndexer\x12\n\n\x02id\x18\x01 \x01(\t"\x82\x01\n\x10IndexerConnected\x12\x36\n\x07indexer\x18\x01 \x01(\x0b\x32%.apibara.application.v1alpha3.Indexer\x12\x36\n\x07version\x18\x02 \x01(\x0b\x32%.apibara.application.v1alpha3.Version"\x18\n\x08\x41\x63kBlock\x12\x0c\n\x04hash\x18\x01 \x01(\x0c"\x9a\x01\n\x15\x43onnectIndexerRequest\x12?\n\x07\x63onnect\x18\x01 \x01(\x0b\x32,.apibara.application.v1alpha3.ConnectIndexerH\x00\x12\x35\n\x03\x61\x63k\x18\x03 \x01(\x0b\x32&.apibara.application.v1alpha3.AckBlockH\x00\x42\t\n\x07message"G\n\x08NewBlock\x12;\n\x08new_head\x18\x01 \x01(\x0b\x32).apibara.application.v1alpha3.BlockHeader"D\n\x05Reorg\x12;\n\x08new_head\x18\x01 \x01(\x0b\x32).apibara.application.v1alpha3.BlockHeader"z\n\tNewEvents\x12\x38\n\x05\x62lock\x18\x01 \x01(\x0b\x32).apibara.application.v1alpha3.BlockHeader\x12\x33\n\x06\x65vents\x18\x02 \x03(\x0b\x32#.apibara.application.v1alpha3.Event"\x9a\x02\n\x16\x43onnectIndexerResponse\x12\x43\n\tconnected\x18\x01 \x01(\x0b\x32..apibara.application.v1alpha3.IndexerConnectedH\x00\x12;\n\tnew_block\x18\x02 \x01(\x0b\x32&.apibara.application.v1alpha3.NewBlockH\x00\x12\x34\n\x05reorg\x18\x03 \x01(\x0b\x32#.apibara.application.v1alpha3.ReorgH\x00\x12=\n\nnew_events\x18\x04 \x01(\x0b\x32\'.apibara.application.v1alpha3.NewEventsH\x00\x42\t\n\x07message2\xea\x04\n\x0eIndexerManager\x12x\n\rCreateIndexer\x12\x32.apibara.application.v1alpha3.CreateIndexerRequest\x1a\x33.apibara.application.v1alpha3.CreateIndexerResponse\x12o\n\nGetIndexer\x12/.apibara.application.v1alpha3.GetIndexerRequest\x1a\x30.apibara.application.v1alpha3.GetIndexerResponse\x12r\n\x0bListIndexer\x12\x30.apibara.application.v1alpha3.ListIndexerRequest\x1a\x31.apibara.application.v1alpha3.ListIndexerResponse\x12x\n\rDeleteIndexer\x12\x32.apibara.application.v1alpha3.DeleteIndexerRequest\x1a\x33.apibara.application.v1alpha3.DeleteIndexerResponse\x12\x7f\n\x0e\x43onnectIndexer\x12\x33.apibara.application.v1alpha3.ConnectIndexerRequest\x1a\x34.apibara.application.v1alpha3.ConnectIndexerResponse(\x01\x30\x01\x62\x06proto3'
 )
 
 
@@ -379,29 +380,29 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _BLOCKHEADER._serialized_start = 1186
     _BLOCKHEADER._serialized_end = 1318
     _STARKNETEVENT._serialized_start = 1321
-    _STARKNETEVENT._serialized_end = 1486
-    _ETHEREUMEVENT._serialized_start = 1488
-    _ETHEREUMEVENT._serialized_end = 1611
-    _EVENT._serialized_start = 1614
-    _EVENT._serialized_end = 1760
-    _VERSION._serialized_start = 1762
-    _VERSION._serialized_end = 1816
-    _CONNECTINDEXER._serialized_start = 1818
-    _CONNECTINDEXER._serialized_end = 1846
-    _INDEXERCONNECTED._serialized_start = 1849
-    _INDEXERCONNECTED._serialized_end = 1979
-    _ACKBLOCK._serialized_start = 1981
-    _ACKBLOCK._serialized_end = 2005
-    _CONNECTINDEXERREQUEST._serialized_start = 2008
-    _CONNECTINDEXERREQUEST._serialized_end = 2162
-    _NEWBLOCK._serialized_start = 2164
-    _NEWBLOCK._serialized_end = 2235
-    _REORG._serialized_start = 2237
-    _REORG._serialized_end = 2305
-    _NEWEVENTS._serialized_start = 2307
-    _NEWEVENTS._serialized_end = 2429
-    _CONNECTINDEXERRESPONSE._serialized_start = 2432
-    _CONNECTINDEXERRESPONSE._serialized_end = 2714
-    _INDEXERMANAGER._serialized_start = 2717
-    _INDEXERMANAGER._serialized_end = 3335
+    _STARKNETEVENT._serialized_end = 1512
+    _ETHEREUMEVENT._serialized_start = 1515
+    _ETHEREUMEVENT._serialized_end = 1664
+    _EVENT._serialized_start = 1667
+    _EVENT._serialized_end = 1813
+    _VERSION._serialized_start = 1815
+    _VERSION._serialized_end = 1869
+    _CONNECTINDEXER._serialized_start = 1871
+    _CONNECTINDEXER._serialized_end = 1899
+    _INDEXERCONNECTED._serialized_start = 1902
+    _INDEXERCONNECTED._serialized_end = 2032
+    _ACKBLOCK._serialized_start = 2034
+    _ACKBLOCK._serialized_end = 2058
+    _CONNECTINDEXERREQUEST._serialized_start = 2061
+    _CONNECTINDEXERREQUEST._serialized_end = 2215
+    _NEWBLOCK._serialized_start = 2217
+    _NEWBLOCK._serialized_end = 2288
+    _REORG._serialized_start = 2290
+    _REORG._serialized_end = 2358
+    _NEWEVENTS._serialized_start = 2360
+    _NEWEVENTS._serialized_end = 2482
+    _CONNECTINDEXERRESPONSE._serialized_start = 2485
+    _CONNECTINDEXERRESPONSE._serialized_end = 2767
+    _INDEXERMANAGER._serialized_start = 2770
+    _INDEXERMANAGER._serialized_end = 3388
 # @@protoc_insertion_point(module_scope)

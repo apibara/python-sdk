@@ -133,6 +133,7 @@ class StarkNetEvent(Event):
     log_index: int
     topics: List[bytes]
     data: List[bytes]
+    transaction_hash: bytes
 
     @staticmethod
     def from_proto(p: indexer_service_pb2.StarkNetEvent):
@@ -144,6 +145,7 @@ class StarkNetEvent(Event):
             log_index=p.log_index,
             topics=topics,
             data=data,
+            transaction_hash=bytes(p.transaction_hash),
         )
 
     def __str__(self) -> str:
@@ -160,6 +162,7 @@ class EthereumEvent(Event):
     log_index: int
     topics: List[bytes]
     data: bytes
+    transaction_hash: bytes
 
     @staticmethod
     def from_proto(p: indexer_service_pb2.EthereumEvent):
@@ -170,6 +173,7 @@ class EthereumEvent(Event):
             log_index=p.log_index,
             topics=topics,
             data=p.data,
+            transaction_hash=bytes(p.transaction_hash),
         )
 
     def __str__(self) -> str:

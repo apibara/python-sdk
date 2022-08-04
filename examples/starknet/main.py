@@ -73,7 +73,13 @@ async def handle_events(info: Info, block_events: NewEvents):
     for ev in block_events.events:
         print(ev.name)
 
-    transfers = [decode_transfer_event(event.data) for event in block_events.events]
+    transfers = [
+        {
+            "event": decode_transfer_event(event.data),
+            "transaction_hash": event.transaction_hash,
+        }
+        for event in block_events.events
+    ]
 
     print("    Transfers decoded.")
 
@@ -82,9 +88,10 @@ async def handle_events(info: Info, block_events: NewEvents):
     # dictionaries, so start by converting to that.
     transfers_docs = [
         {
-            "from_address": encode_int_as_bytes(tr.from_address),
-            "to_address": encode_int_as_bytes(tr.to_address),
-            "token_id": encode_int_as_bytes(tr.token_id),
+            "from_address": encode_int_as_bytes(tr["event"].from_address),
+            "to_address": encode_int_as_bytes(tr["event"].to_address),
+            "token_id": encode_int_as_bytes(tr["event"].token_id),
+            "transaction_hash": tr["transaction_hash"],
             "timestamp": block_time,
         }
         for tr in transfers
@@ -105,7 +112,7 @@ async def handle_events(info: Info, block_events: NewEvents):
     # write this to the database.
     new_token_owner = dict()
     for transfer in transfers:
-        new_token_owner[transfer.token_id] = transfer.to_address
+        new_token_owner[transfer["event"].token_id] = transfer["event"].to_address
 
     # Now store the new tokens state to the database.
     #

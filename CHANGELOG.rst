@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Apibara Python SDK 0.4.3 (2022-08-04)
+-------------------------------------
+
+Added
+^^^^^
+
+ - Include transaction hash in events.
+
 
 Apibara Python SDK 0.4.2 (2022-07-24)
 -------------------------------------
