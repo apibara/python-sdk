@@ -40,7 +40,7 @@ pymongo = {extras = ["srv"], version = "^4.1.1"}
 pytest = "^7.1"
 black = "^22.3.0"
 isort = "^5.10.1"
-"starknet.py" = "^0.3.4-alpha.0"
+"starknet.py" = "^0.4.4a0"
 pytest-asyncio = "^0.18.3"
 web3 = "^5.30.0"
 

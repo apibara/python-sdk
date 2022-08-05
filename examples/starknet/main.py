@@ -3,7 +3,7 @@ import sys
 from argparse import ArgumentParser
 from typing import List, NamedTuple
 
-from starknet_py.contract import DataTransformer, identifier_manager_from_abi
+from starknet_py.contract import FunctionCallSerializer, identifier_manager_from_abi
 
 from apibara import Client, IndexerRunner, Info, NewBlock, NewEvents
 from apibara.indexer.runner import IndexerRunnerConfiguration
@@ -38,7 +38,7 @@ transfer_abi = {
     ],
 }
 
-transfer_decoder = DataTransformer(
+transfer_decoder = FunctionCallSerializer(
     abi=transfer_abi,
     identifier_manager=identifier_manager_from_abi([transfer_abi, uint256_abi]),
 )
