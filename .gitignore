@@ -2,3 +2,4 @@ __pycache__
 venv
 dist
 examples/starknet/_docker
+.pytest_cache

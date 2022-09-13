@@ -1,13 +1,10 @@
-import asyncio
-import sys
-from argparse import ArgumentParser
 from typing import List, NamedTuple
+import asyncio
 
 from starknet_py.contract import FunctionCallSerializer, identifier_manager_from_abi
 
-from apibara import Client, IndexerRunner, Info, NewBlock, NewEvents
-from apibara.indexer.runner import IndexerRunnerConfiguration
-from apibara.model import EventFilter
+from apibara.legacy import IndexerRunnerConfiguration, IndexerRunner, Info, NewBlock, NewEvents, EventFilter
+
 
 indexer_id = "starknet-example"
 briqs_address = "0x0266b1276d23ffb53d99da3f01be7e29fa024dd33cd7f7b1eb7a46c67891c9d0"
@@ -160,20 +157,12 @@ async def handle_block(info: Info, block: NewBlock):
     await info.storage.insert_one("blocks", block)
 
 
-async def main(args):
-    parser = ArgumentParser()
-    parser.add_argument("--reset", action="store_true", default=False)
-    args = parser.parse_args()
-
-    if args.reset:
-        async with Client.connect() as client:
-            existing = await client.indexer_client().get_indexer(indexer_id)
-            if existing:
-                await client.indexer_client().delete_indexer(indexer_id)
-                print("Indexer deleted. Starting from beginning.")
+async def main():
 
     runner = IndexerRunner(
         config=IndexerRunnerConfiguration(
+            # apibara_url="localhost:7171",
+            apibara_url="goerli.starknet.stream.apibara.com:443",
             storage_url="mongodb://apibara:apibara@localhost:27017"
         ),
         network_name="starknet-goerli",
@@ -190,11 +179,10 @@ async def main(args):
     # event names and StarkNet events.
     runner.create_if_not_exists(
         filters=[EventFilter.from_event_name(name="Transfer", address=briqs_address)],
-        index_from_block=200_000,
+        index_from_block=180_000,
     )
 
     await runner.run()
 
-
-if __name__ == "__main__":
-    asyncio.run(main(sys.argv[1:]))
+if __name__ == '__main__':
+    asyncio.run(main())

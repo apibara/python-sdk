@@ -9,27 +9,6 @@ Apibara Python SDK
 
 Build web3-powered applications in Python. 
 
-`Apibara <https://github.com/apibara/apibara>`_ is a tool to build web APIs that
-integrate data from one or more blockchains. Simply define a new indexer service
-and the Apibara service will send it historical and live events to index.
-
-
-Getting started
----------------
-
-Start by running MongoDB and Apibara using the `docker-compose.yml` file included in `examples/starknet`.
-
-.. code::
-
-    docker-compose up
-
-
-Then you can run the example script.
-
-.. code::
-
-    python examples/starknet/main.py
-
 
 License
 -------
