@@ -32,6 +32,7 @@ ReorgHandler = Callable[[Info, Reorg], Awaitable[None]]
 @dataclass
 class IndexerRunnerConfiguration:
     apibara_url: Optional[str] = None
+    apibara_ssl: bool = False
     rpc_url: Optional[str] = None
     storage_url: Optional[str] = None
 
@@ -113,7 +114,7 @@ class IndexerRunner(Generic[UserContext]):
         if starting_sequence is None:
             starting_sequence = self._indexer_config["index_from_block"]
 
-        client = AsyncClient(self._config.apibara_url, ssl=True)
+        client = AsyncClient(self._config.apibara_url, ssl=self._config.apibara_ssl)
 
         node_service = await client.service("apibara.node.v1alpha1.Node")
 

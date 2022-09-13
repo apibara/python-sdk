@@ -161,8 +161,8 @@ async def main():
 
     runner = IndexerRunner(
         config=IndexerRunnerConfiguration(
-            # apibara_url="localhost:7171",
             apibara_url="goerli.starknet.stream.apibara.com:443",
+            apibara_ssl=True,
             storage_url="mongodb://apibara:apibara@localhost:27017"
         ),
         network_name="starknet-goerli",
