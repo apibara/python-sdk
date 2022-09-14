@@ -38,7 +38,7 @@ ReorgHandler = Callable[[Info, Reorg], Awaitable[None]]
 @dataclass
 class IndexerRunnerConfiguration:
     apibara_url: Optional[str] = None
-    apibara_ssl: bool = False
+    apibara_ssl: bool = True
     rpc_url: Optional[str] = None
     storage_url: Optional[str] = None
 
@@ -50,7 +50,6 @@ class IndexerRunner(Generic[UserContext]):
         self,
         *,
         indexer_id: str,
-        network_name: str,
         new_events_handler: NewEventsHandler,
         reset_state: bool = False,
         config: Optional[IndexerRunnerConfiguration] = None,
@@ -59,7 +58,6 @@ class IndexerRunner(Generic[UserContext]):
             config = IndexerRunnerConfiguration()
         self._reset_state = reset_state
         self._indexer_id = indexer_id
-        self._network_name = network_name
         self._config = config
         self._new_events_handler = new_events_handler
         self._block_handler = None
@@ -75,6 +73,13 @@ class IndexerRunner(Generic[UserContext]):
         self._event_name_map = dict()
 
     def create_if_not_exists(
+        self,
+        filters: Optional[List[EventFilter]] = None,
+        index_from_block: Optional[int] = None,
+    ):
+        self.add_event_filters(filters, index_from_block)
+
+    def add_event_filters(
         self,
         filters: Optional[List[EventFilter]] = None,
         index_from_block: Optional[int] = None,
@@ -193,10 +198,14 @@ class CompiledEventFilter:
 
     @classmethod
     def from_event_filter(cls, filter: EventFilter):
+        address = None
+        if filter.address is not None:
+            address = filter.address.ljust(32, b"\0")
+
         return CompiledEventFilter(
             name=filter.signature,
             keys=[ContractFunction.get_selector(filter.signature).to_bytes(32, "big")],
-            address=filter.address.ljust(32, b"\0"),
+            address=address
         )
 
     def matches(self, event):

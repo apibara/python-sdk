@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.1 (2022-09-14)
+-------------------------------------
+
+Changed
+^^^^^^^
+
+ - Remove :code:`network_name` :code:`IndexerRunner` argument.
+ - Support filtering events by name only.
+
+
 Apibara Python SDK 0.5.0 (2022-09-14)
 -------------------------------------
 

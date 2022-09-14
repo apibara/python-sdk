@@ -57,15 +57,18 @@ class Storage:
         self._session = session
 
     async def insert_one(self, collection: str, doc: Document):
+        """Insert `doc` into `collection`."""
         self._add_chain_information(doc)
         self._db[collection].insert_one(doc, session=self._session)
 
     async def insert_many(self, collection: str, docs: Iterable[Document]):
+        """Insert multiple `docs` into `collection`."""
         for doc in docs:
             self._add_chain_information(doc)
         self._db[collection].insert_many(docs, session=self._session)
 
     async def delete_one(self, collection: str, filter: Filter):
+        """"Delete the first document in `collection` matching `filter`."""
         self._add_current_block_to_filter(filter)
         self._db[collection].update_one(
             filter,
@@ -74,6 +77,7 @@ class Storage:
         )
 
     async def delete_many(self, collection: str, filter: Filter):
+        """Delete all documents in `collection` matching `filter`."""
         self._add_current_block_to_filter(filter)
         self._db[collection].update_many(
             filter,
@@ -82,6 +86,7 @@ class Storage:
         )
 
     async def find_one(self, collection: str, filter: Filter) -> Optional[Document]:
+        """Find the first document in `collection` matching `filter`."""
         self._add_current_block_to_filter(filter)
         return self._db[collection].find_one(filter, session=self._session)
 
@@ -94,6 +99,17 @@ class Storage:
         skip: int = 0,
         limit: int = 0,
     ) -> Iterable[dict]:
+        """Find all documents in `collection` matching `filter`.
+        
+        Arguments
+        ---------
+        - `collection`: the collection,
+        - `filter`: the filter,
+        - `sort`: keys used for sorting, e.g. `{"a": -1}` sorts documents by key `a` in descending order,
+        - `project`: filter document keys to reduce the document size,
+        - `skip`: number of documents to skip,
+        - `limit`: maximum number of documents returned.
+        """
         self._add_current_block_to_filter(filter)
         cursor = self._db[collection].find(
             filter, projection, skip, limit, session=self._session
@@ -110,6 +126,10 @@ class Storage:
         replacement: Document,
         upsert: bool = False,
     ):
+        """Replace the first document in `collection` matching `filter` with `replacement`.
+        
+        If `upsert = True`, insert `replacement` even if no document matched the `filter`.
+        """
         # Step 1. Update the old document (if any) by clamping its validity range
         self._add_current_block_to_filter(filter)
         existing = self._db[collection].find_one_and_update(
@@ -128,6 +148,8 @@ class Storage:
     async def find_one_and_update(
         self, collection: str, filter: Filter, update: Update
     ):
+        """Update the first document in `collection` matching `filter` with `update`.
+        """
         # Step 1. Update the old document (if any) by clamping its validity range
         self._add_current_block_to_filter(filter)
         existing = self._db[collection].find_one_and_update(

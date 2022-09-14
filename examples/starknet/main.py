@@ -167,14 +167,16 @@ async def main(argv):
     runner = IndexerRunner(
         config=IndexerRunnerConfiguration(
             apibara_url="goerli.starknet.stream.apibara.com:443",
-            apibara_ssl=True,
             storage_url="mongodb://apibara:apibara@localhost:27017",
         ),
         reset_state=args.reset,
-        network_name="starknet-goerli",
         indexer_id=indexer_id,
         new_events_handler=handle_events,
     )
+
+    runner.set_context({
+        "network": "starknet-goerli"
+    })
 
     runner.add_block_handler(handle_block)
 
@@ -183,7 +185,7 @@ async def main(argv):
     #
     # For now, this also helps the SDK map between human-readable
     # event names and StarkNet events.
-    runner.create_if_not_exists(
+    runner.add_event_filters(
         filters=[EventFilter.from_event_name(name="Transfer", address=briqs_address)],
         index_from_block=180_000,
     )

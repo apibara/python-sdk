@@ -13,7 +13,7 @@ class EventFilter:
 
     @classmethod
     def from_event_name(
-        cls, name: str, address: Optional[Union[str, bytes]]
+        cls, name: str, address: Optional[Union[str, bytes]] = None
     ) -> "EventFilter":
         """Create an EventFilter from the event name."""
         if isinstance(address, str):
