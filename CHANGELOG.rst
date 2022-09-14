@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.0 (2022-09-14)
+-------------------------------------
+
+Changed
+^^^^^^^
+
+ - Support Apibara stream protocol.
+
+Added
+^^^^^
+
+ - Add flag to reset indexer state.
+
+
 Apibara Python SDK 0.4.3 (2022-08-04)
 -------------------------------------
 
