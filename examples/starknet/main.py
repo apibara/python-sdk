@@ -1,10 +1,14 @@
-from typing import List, NamedTuple
 import asyncio
+import sys
+from argparse import ArgumentParser
+from typing import List, NamedTuple
 
-from starknet_py.contract import FunctionCallSerializer, identifier_manager_from_abi
+from starknet_py.contract import (FunctionCallSerializer,
+                                  identifier_manager_from_abi)
 
-from apibara.legacy import IndexerRunnerConfiguration, IndexerRunner, Info, NewBlock, NewEvents, EventFilter
-
+from apibara.legacy import (EventFilter, IndexerRunner,
+                            IndexerRunnerConfiguration, Info, NewBlock,
+                            NewEvents)
 
 indexer_id = "starknet-example"
 briqs_address = "0x0266b1276d23ffb53d99da3f01be7e29fa024dd33cd7f7b1eb7a46c67891c9d0"
@@ -157,14 +161,18 @@ async def handle_block(info: Info, block: NewBlock):
     await info.storage.insert_one("blocks", block)
 
 
-async def main():
+async def main(argv):
+    parser = ArgumentParser()
+    parser.add_argument("--reset", action="store_true")
+    args = parser.parse_args(argv)
 
     runner = IndexerRunner(
         config=IndexerRunnerConfiguration(
             apibara_url="goerli.starknet.stream.apibara.com:443",
             apibara_ssl=True,
-            storage_url="mongodb://apibara:apibara@localhost:27017"
+            storage_url="mongodb://apibara:apibara@localhost:27017",
         ),
+        reset_state=args.reset,
         network_name="starknet-goerli",
         indexer_id=indexer_id,
         new_events_handler=handle_events,
@@ -184,5 +192,6 @@ async def main():
 
     await runner.run()
 
-if __name__ == '__main__':
-    asyncio.run(main())
+
+if __name__ == "__main__":
+    asyncio.run(main(sys.argv[1:]))
