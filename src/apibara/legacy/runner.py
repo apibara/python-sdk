@@ -1,19 +1,19 @@
 """Apibara indexer runner."""
 
 import base64
-from dataclasses import dataclass
-from contextlib import contextmanager
-from typing import Awaitable, Callable, Generic, List, Optional, TypeVar
 import warnings
+from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Awaitable, Callable, Generic, List, Optional, TypeVar
 
 from grpc.aio import AioRpcError
 from grpc_requests.aio import AsyncClient
 from starknet_py.contract import ContractFunction
 
-from apibara.legacy.model import BlockHeader, NewEvents, NewBlock, Reorg, EventFilter, Event, StarkNetEvent
+from apibara.legacy.model import (BlockHeader, Event, EventFilter, NewBlock,
+                                  NewEvents, Reorg, StarkNetEvent)
 from apibara.legacy.storage import IndexerStorage, Storage
 from apibara.logging import logger
-
 
 UserContext = TypeVar("UserContext")
 
@@ -46,10 +46,12 @@ class IndexerRunner(Generic[UserContext]):
         indexer_id: str,
         network_name: str,
         new_events_handler: NewEventsHandler,
+        reset_state: bool = False,
         config: Optional[IndexerRunnerConfiguration] = None,
     ) -> None:
         if config is None:
             config = IndexerRunnerConfiguration()
+        self._reset_state = reset_state
         self._indexer_id = indexer_id
         self._network_name = network_name
         self._config = config
@@ -93,6 +95,8 @@ class IndexerRunner(Generic[UserContext]):
         """Run the indexer until stopped."""
         self._print_deprecation_notice()
         self._check_config()
+        if self._reset_state:
+            self._delete_old_state()
         await self._do_run()
 
     def _check_config(self):
@@ -106,7 +110,13 @@ class IndexerRunner(Generic[UserContext]):
             raise RuntimeError("must provide a storage_url in config")
 
     def _print_deprecation_notice(self):
-        warnings.warn("IndexerRunner is deprecated and will be removed in the next release.", DeprecationWarning)
+        warnings.warn(
+            "IndexerRunner is deprecated and will be removed in the next release.",
+            DeprecationWarning,
+        )
+
+    def _delete_old_state(self):
+        self._indexer_storage.drop_database()
 
     async def _do_run(self):
         # Try to start from where the previous run left off
@@ -120,7 +130,9 @@ class IndexerRunner(Generic[UserContext]):
 
         self._compile_event_filters()
 
-        async for message in await node_service.Connect({"starting_sequence": starting_sequence}):
+        async for message in await node_service.Connect(
+            {"starting_sequence": starting_sequence}
+        ):
             if "data" in message:
                 block = message["data"]["data"]
                 block_header = BlockHeader.from_proto(block)
@@ -137,9 +149,7 @@ class IndexerRunner(Generic[UserContext]):
     @contextmanager
     def _block_context(self, number: int) -> Info[UserContext]:
         with self._indexer_storage.create_storage_for_block(number) as storage:
-            yield Info(
-                context=self._context, storage=storage
-            )
+            yield Info(context=self._context, storage=storage)
 
     def _compile_event_filters(self):
         self._compiled_filters = [
@@ -180,7 +190,7 @@ class CompiledEventFilter:
         return CompiledEventFilter(
             name=filter.signature,
             keys=[ContractFunction.get_selector(filter.signature).to_bytes(32, "big")],
-            address=filter.address.ljust(32, b"\0")
+            address=filter.address.ljust(32, b"\0"),
         )
 
     def matches(self, event):
@@ -192,8 +202,6 @@ class CompiledEventFilter:
             if event_address != self.address:
                 return False
 
-        event_keys = [
-            base64.b64decode(k).ljust(32, b"\0") for k in event["keys"]
-        ]
+        event_keys = [base64.b64decode(k).ljust(32, b"\0") for k in event["keys"]]
 
         return event_keys == self.keys

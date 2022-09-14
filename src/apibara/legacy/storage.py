@@ -2,8 +2,8 @@ from contextlib import contextmanager
 from typing import Any, Iterable, Iterator, Optional
 
 from pymongo import MongoClient
-from pymongo.database import Database
 from pymongo.client_session import ClientSession
+from pymongo.database import Database
 
 Document = dict[str, Any]
 Filter = dict[str, Any]
@@ -36,12 +36,15 @@ class IndexerStorage:
             return None
         return state["indexed_to"] + 1
 
+    def drop_database(self):
+        self._mongo.drop_database(self.db_name)
+
     def _update_indexed_to(self, block_number: int, session: ClientSession):
         self.db["_apibara"].update_one(
             {"indexer_id": self._indexer_id},
             {"$set": {"indexed_to": block_number}},
             upsert=True,
-            session=session
+            session=session,
         )
 
 
@@ -65,13 +68,17 @@ class Storage:
     async def delete_one(self, collection: str, filter: Filter):
         self._add_current_block_to_filter(filter)
         self._db[collection].update_one(
-            filter, {"$set": {"_chain.valid_to": self._block_number}}, session=self._session
+            filter,
+            {"$set": {"_chain.valid_to": self._block_number}},
+            session=self._session,
         )
 
     async def delete_many(self, collection: str, filter: Filter):
         self._add_current_block_to_filter(filter)
         self._db[collection].update_many(
-            filter, {"$set": {"_chain.valid_to": self._block_number}}, session=self._session
+            filter,
+            {"$set": {"_chain.valid_to": self._block_number}},
+            session=self._session,
         )
 
     async def find_one(self, collection: str, filter: Filter) -> Optional[Document]:
@@ -88,7 +95,9 @@ class Storage:
         limit: int = 0,
     ) -> Iterable[dict]:
         self._add_current_block_to_filter(filter)
-        cursor = self._db[collection].find(filter, projection, skip, limit, session=self._session)
+        cursor = self._db[collection].find(
+            filter, projection, skip, limit, session=self._session
+        )
         if sort is not None:
             for field, order in sort.items():
                 cursor = cursor.sort(field, order)
@@ -104,7 +113,9 @@ class Storage:
         # Step 1. Update the old document (if any) by clamping its validity range
         self._add_current_block_to_filter(filter)
         existing = self._db[collection].find_one_and_update(
-            filter, {"$set": {"_chain.valid_to": self._block_number}}, session=self._session
+            filter,
+            {"$set": {"_chain.valid_to": self._block_number}},
+            session=self._session,
         )
 
         # Step 2. Insert the new document.
@@ -120,7 +131,9 @@ class Storage:
         # Step 1. Update the old document (if any) by clamping its validity range
         self._add_current_block_to_filter(filter)
         existing = self._db[collection].find_one_and_update(
-            filter, {"$set": {"_chain.valid_to": self._block_number}}, session=self._session
+            filter,
+            {"$set": {"_chain.valid_to": self._block_number}},
+            session=self._session,
         )
 
         # Step 2. To simulate an update, first insert then call update on it.

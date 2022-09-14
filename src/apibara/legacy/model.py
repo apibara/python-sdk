@@ -1,7 +1,7 @@
 """Objects used in the Apibara client."""
 
-from dataclasses import dataclass
 import base64
+from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Literal, Optional, Union
 
@@ -31,14 +31,13 @@ class BlockHeader:
     @classmethod
     def from_proto(cls, block) -> "BlockHeader":
         hash = base64.b64decode(block["block_hash"]["hash"]).ljust(32, b"\0")
-        parent_hash = base64.b64decode(block["parent_block_hash"]["hash"]).ljust(32, b"\0")
+        parent_hash = base64.b64decode(block["parent_block_hash"]["hash"]).ljust(
+            32, b"\0"
+        )
         number = int(block.get("block_number", 0))
         timestamp = datetime.fromisoformat(block["timestamp"][:-1])
         return BlockHeader(
-            hash=hash,
-            parent_hash=parent_hash,
-            number=number,
-            timestamp=timestamp
+            hash=hash, parent_hash=parent_hash, number=number, timestamp=timestamp
         )
 
     def __str__(self) -> str:
@@ -62,19 +61,15 @@ class StarkNetEvent(Event):
     @classmethod
     def from_proto(cls, event, log_index, event_name) -> "StarkNetEvent":
         address = base64.b64decode(event["from_address"]).ljust(32, b"\0")
-        keys = [
-            base64.b64decode(k).ljust(32, b"\0") for k in event["keys"]
-        ]
-        data = [
-            base64.b64decode(k).ljust(32, b"\0") for k in event["data"]
-        ]
+        keys = [base64.b64decode(k).ljust(32, b"\0") for k in event["keys"]]
+        data = [base64.b64decode(k).ljust(32, b"\0") for k in event["data"]]
         return StarkNetEvent(
             name=event_name,
             address=address,
             log_index=log_index,
             topics=keys,
             data=data,
-            transaction_hash=None
+            transaction_hash=None,
         )
 
 
