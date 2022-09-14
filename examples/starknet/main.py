@@ -3,12 +3,10 @@ import sys
 from argparse import ArgumentParser
 from typing import List, NamedTuple
 
-from starknet_py.contract import (FunctionCallSerializer,
-                                  identifier_manager_from_abi)
+from starknet_py.contract import FunctionCallSerializer, identifier_manager_from_abi
 
-from apibara.legacy import (EventFilter, IndexerRunner,
-                            IndexerRunnerConfiguration, Info, NewBlock,
-                            NewEvents)
+from apibara import EventFilter, Info, NewBlock, NewEvents
+from apibara.indexer.runner import IndexerRunner, IndexerRunnerConfiguration
 
 indexer_id = "starknet-example"
 briqs_address = "0x0266b1276d23ffb53d99da3f01be7e29fa024dd33cd7f7b1eb7a46c67891c9d0"

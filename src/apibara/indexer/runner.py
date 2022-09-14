@@ -10,10 +10,16 @@ from grpc.aio import AioRpcError
 from grpc_requests.aio import AsyncClient
 from starknet_py.contract import ContractFunction
 
-from apibara.legacy.model import (BlockHeader, Event, EventFilter, NewBlock,
-                                  NewEvents, Reorg, StarkNetEvent)
-from apibara.legacy.storage import IndexerStorage, Storage
+from apibara.indexer.storage import IndexerStorage, Storage
 from apibara.logging import logger
+from apibara.model import (
+    BlockHeader,
+    EventFilter,
+    NewBlock,
+    NewEvents,
+    Reorg,
+    StarkNetEvent,
+)
 
 UserContext = TypeVar("UserContext")
 
