@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.2 (2022-09-15)
+-------------------------------------
+
+Fixed
+^^^^^
+
+ - Add :code:`starknet-py` to dependencies.
+
+
 Apibara Python SDK 0.5.1 (2022-09-14)
 -------------------------------------
 
