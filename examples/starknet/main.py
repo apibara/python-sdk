@@ -70,7 +70,7 @@ async def handle_events(info: Info, block_events: NewEvents):
     print(f"Handle block events: Block No. {block_events.block.number} - {block_time}")
 
     for ev in block_events.events:
-        print(ev.name)
+        print(ev.name, ev.transaction_hash.hex())
 
     transfers = [
         {

@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.3 (2022-09-27)
+-------------------------------------
+
+Fixed
+^^^^^
+
+ - Include transaction hash in :code:`StarknetEvent`.
+
+
 Apibara Python SDK 0.5.2 (2022-09-15)
 -------------------------------------
 

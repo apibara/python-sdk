@@ -59,7 +59,7 @@ class StarkNetEvent(Event):
     transaction_hash: bytes
 
     @classmethod
-    def from_proto(cls, event, log_index, event_name) -> "StarkNetEvent":
+    def from_proto(cls, event, log_index, event_name, tx_hash) -> "StarkNetEvent":
         address = base64.b64decode(event["from_address"]).ljust(32, b"\0")
         keys = [base64.b64decode(k).ljust(32, b"\0") for k in event["keys"]]
         data = [base64.b64decode(k).ljust(32, b"\0") for k in event["data"]]
@@ -69,7 +69,7 @@ class StarkNetEvent(Event):
             log_index=log_index,
             topics=keys,
             data=data,
-            transaction_hash=None,
+            transaction_hash=tx_hash,
         )
 
 

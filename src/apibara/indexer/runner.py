@@ -173,12 +173,13 @@ class IndexerRunner(Generic[UserContext]):
         log_index = 0
         transactions = block["transactions"]
         for receipt in block["transaction_receipts"]:
-            # tx = transactions[receipt.get("transaction_index", 0)]
+            tx = transactions[int(receipt.get("transaction_index", 0))]
             if "events" in receipt:
                 for event in receipt["events"]:
                     event_name, matched = self._filter_matching(event)
                     if matched:
-                        event = StarkNetEvent.from_proto(event, log_index, event_name)
+                        tx_hash = _transaction_hash(tx)
+                        event = StarkNetEvent.from_proto(event, log_index, event_name, tx_hash)
                         matched_events.append(event)
                     log_index += 1
         return matched_events
@@ -220,3 +221,18 @@ class CompiledEventFilter:
         event_keys = [base64.b64decode(k).ljust(32, b"\0") for k in event["keys"]]
 
         return event_keys == self.keys
+
+
+def _transaction_hash(tx) -> bytes:
+    common = None
+    if "invoke" in tx:
+        common = tx["invoke"]["common"]
+    elif "deploy" in tx:
+        common = tx["deploy"]["common"]
+    elif "declare" in tx:
+        common = tx["declare"]["common"]
+    elif "l1_handler" in tx:
+        common = tx["l1_handler"]["common"]
+    else:
+        raise RuntimeError("unknown transaction type")
+    return base64.b64decode(common["hash"])
