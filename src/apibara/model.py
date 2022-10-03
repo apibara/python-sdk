@@ -8,6 +8,17 @@ from typing import List, Optional, Union
 
 @dataclass(eq=True, frozen=True)
 class EventFilter:
+    """Filter transactions events based on their signature.
+    
+    The EventFilter can, optionally, filter by the emitting contract.
+    
+    Parameters
+    ----------
+    signature:
+        the event signature.
+    address:
+        the contract address.
+    """
     signature: str
     address: Optional[bytes]
 
@@ -15,7 +26,7 @@ class EventFilter:
     def from_event_name(
         cls, name: str, address: Optional[Union[str, bytes, int]] = None
     ) -> "EventFilter":
-        """Create an EventFilter from the event name."""
+        """Create an EventFilter from the event name and contract address."""
         if isinstance(address, str):
             address = bytes.fromhex(address.replace("0x", ""))
         if isinstance(address, int):
@@ -23,10 +34,12 @@ class EventFilter:
         return cls(name, address)
 
     def to_json(self):
+        """Returns the json representation of the filter."""
         return {"signature": self.signature, "address": self.address}
 
     @classmethod
     def from_json(cls, data):
+        """Create an EventFilter from its json representation."""
         signature = data["signature"]
         if not isinstance(signature, str):
             raise ValueError("invalid signature. must be str")
@@ -40,6 +53,19 @@ class EventFilter:
 
 @dataclass
 class BlockHeader:
+    """Information about a block.
+    
+    Parameters
+    ----------
+    hash:
+        the block hash.
+    parent_hash:
+        the hash of the block's parent.
+    number:
+        the block number.
+    timestamp:
+        the block timestamp.
+    """
     hash: bytes
     parent_hash: Optional[bytes]
     number: int
@@ -63,11 +89,29 @@ class BlockHeader:
 
 @dataclass
 class Event:
+    """Base class for chain-specific events."""
     pass
 
 
 @dataclass
 class StarkNetEvent(Event):
+    """StarkNet event.
+    
+    Parameters
+    ----------
+    name:
+        event name.
+    address:
+        address of the contract emitting the event.
+    log_index:
+        index in the list of events emitted by the block.
+    topics:
+        event topics. Usually this is the hash of the event name.
+    data:
+        raw event data.
+    transaction_hash:
+        hash of the transaction emitting the event.
+    """
     name: Optional[str]
     address: bytes
     log_index: int
@@ -92,6 +136,13 @@ class StarkNetEvent(Event):
 
 @dataclass
 class NewBlock:
+    """Information about a new block being indexed.
+    
+    Parameters
+    ----------
+    new_head:
+        block header.
+    """
     new_head: BlockHeader
 
 
@@ -102,5 +153,14 @@ class Reorg:
 
 @dataclass
 class NewEvents:
+    """Information about indexed events in a block.
+    
+    Parameters
+    ----------
+    block
+        the block containing the events.
+    events:
+        list of events.
+    """
     block: BlockHeader
     events: List[Event]

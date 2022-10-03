@@ -20,6 +20,15 @@ UserContext = TypeVar("UserContext")
 
 @dataclass
 class Info(Generic[UserContext]):
+    """State shared between handlers.
+    
+    Parameters
+    ----------
+    context:
+        application-specific context.
+    storage:
+        access the chain-aware storage.
+    """
     context: UserContext
     storage: Storage
 
@@ -47,6 +56,17 @@ ReorgHandler = Callable[[Info, Reorg], Awaitable[None]]
 
 @dataclass
 class IndexerRunnerConfiguration:
+    """IndexerRunner configuration.
+    
+    Parameters
+    ----------
+    apibara_url:
+        url of the Apibara stream.
+    apibara_ssl:
+        flag to connect using SSL.
+    storage_url:
+        MongoDB connection string, used to store the indexer  data and state.
+    """
     apibara_url: Optional[str] = None
     apibara_ssl: bool = True
     rpc_url: Optional[str] = None
@@ -54,7 +74,19 @@ class IndexerRunnerConfiguration:
 
 
 class IndexerRunner(Generic[UserContext]):
-    """Run an indexer, listening for new events and calling the provided callbacks."""
+    """Run an indexer, listening for new events and calling the provided callbacks.
+    
+    Parameters
+    ----------
+    indexer_id:
+        unique id of this indexer. Used when persisting state.
+    new_events_handler:
+        async function called for each new block containing indexed events.
+    reset_state:
+        flag to restart the indexer from the beginning.
+    config:
+        options to set the input stream and connection string.
+    """
 
     def __init__(
         self,
@@ -92,7 +124,15 @@ class IndexerRunner(Generic[UserContext]):
         filters: Optional[List[EventFilter]] = None,
         index_from_block: Optional[int] = None,
     ):
-        """If the indexer does not exist on the server, create it."""
+        """Add the initial event filters.
+        
+        Parameters
+        ----------
+        filters:
+            a list of EventFilter
+        index_from_block:
+            start indexing from the given block.
+        """
         self._indexer_config = {
             "filters": filters,
             "index_from_block": index_from_block,
