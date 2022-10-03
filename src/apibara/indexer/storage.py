@@ -1,9 +1,11 @@
 from contextlib import contextmanager
-from typing import Any, Iterable, Iterator, Optional
+from typing import Any, Iterable, Iterator, List, Optional
 
 from pymongo import MongoClient
 from pymongo.client_session import ClientSession
 from pymongo.database import Database
+
+from apibara.model import EventFilter
 
 Document = dict[str, Any]
 Filter = dict[str, Any]
@@ -30,11 +32,38 @@ class IndexerStorage:
             yield Storage(self.db, session, block_number)
             self._update_indexed_to(block_number, session)
 
+    def initialize(self, starting_sequence: int, filters: List[EventFilter]):
+        existing = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
+        if existing is not None:
+            return
+        self.db["_apibara"].insert_one(
+            {
+                "indexer_id": self._indexer_id,
+                "indexed_to": starting_sequence,
+                "filters": [f.to_json() for f in filters],
+            }
+        )
+
     def starting_sequence(self):
         state = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
-        if state is None:
+        if state is None or state.get("indexed_to") is None:
             return None
         return state["indexed_to"] + 1
+
+    def event_filters(self):
+        state = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
+        if state is None:
+            raise RuntimeError("indexer state not found")
+        return [EventFilter.from_json(j) for j in state["filters"]]
+
+    def _set_event_filters(self, filters: List[EventFilter], session: ClientSession):
+        """Set the indexer event filters, overriding the previous filters."""
+        filters_docs = [f.to_json() for f in filters]
+        self.db["_apibara"].update_one(
+            {"indexer_id": self._indexer_id},
+            {"$set": {"filters": filters_docs}},
+            session=session,
+        )
 
     def drop_database(self):
         self._mongo.drop_database(self.db_name)
@@ -68,7 +97,7 @@ class Storage:
         self._db[collection].insert_many(docs, session=self._session)
 
     async def delete_one(self, collection: str, filter: Filter):
-        """"Delete the first document in `collection` matching `filter`."""
+        """ "Delete the first document in `collection` matching `filter`."""
         self._add_current_block_to_filter(filter)
         self._db[collection].update_one(
             filter,
@@ -100,7 +129,7 @@ class Storage:
         limit: int = 0,
     ) -> Iterable[dict]:
         """Find all documents in `collection` matching `filter`.
-        
+
         Arguments
         ---------
         - `collection`: the collection,
@@ -127,7 +156,7 @@ class Storage:
         upsert: bool = False,
     ):
         """Replace the first document in `collection` matching `filter` with `replacement`.
-        
+
         If `upsert = True`, insert `replacement` even if no document matched the `filter`.
         """
         # Step 1. Update the old document (if any) by clamping its validity range
@@ -148,8 +177,7 @@ class Storage:
     async def find_one_and_update(
         self, collection: str, filter: Filter, update: Update
     ):
-        """Update the first document in `collection` matching `filter` with `update`.
-        """
+        """Update the first document in `collection` matching `filter` with `update`."""
         # Step 1. Update the old document (if any) by clamping its validity range
         self._add_current_block_to_filter(filter)
         existing = self._db[collection].find_one_and_update(

@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.4 (2022-10-01)
+-------------------------------------
+
+Added
+^^^^^
+
+ - Add dynamic event filters to indexer.
+ - Add block handler callback to indexer.
+
+
 Apibara Python SDK 0.5.3 (2022-09-27)
 -------------------------------------
 

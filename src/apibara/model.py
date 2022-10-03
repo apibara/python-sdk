@@ -6,19 +6,36 @@ from datetime import datetime
 from typing import List, Optional, Union
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class EventFilter:
     signature: str
     address: Optional[bytes]
 
     @classmethod
     def from_event_name(
-        cls, name: str, address: Optional[Union[str, bytes]] = None
+        cls, name: str, address: Optional[Union[str, bytes, int]] = None
     ) -> "EventFilter":
         """Create an EventFilter from the event name."""
         if isinstance(address, str):
             address = bytes.fromhex(address.replace("0x", ""))
+        if isinstance(address, int):
+            address = address.to_bytes(32, "big")
         return cls(name, address)
+
+    def to_json(self):
+        return {"signature": self.signature, "address": self.address}
+
+    @classmethod
+    def from_json(cls, data):
+        signature = data["signature"]
+        if not isinstance(signature, str):
+            raise ValueError("invalid signature. must be str")
+        address = data.get("address")
+        if address is None:
+            return cls(signature, None)
+        if not isinstance(address, bytes):
+            raise ValueError("invalid address. must be bytes")
+        return cls(signature, address)
 
 
 @dataclass

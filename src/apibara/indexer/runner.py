@@ -3,7 +3,7 @@
 import base64
 import warnings
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Generic, List, Optional, TypeVar
 
 from grpc.aio import AioRpcError
@@ -12,14 +12,8 @@ from starknet_py.contract import ContractFunction
 
 from apibara.indexer.storage import IndexerStorage, Storage
 from apibara.logging import logger
-from apibara.model import (
-    BlockHeader,
-    EventFilter,
-    NewBlock,
-    NewEvents,
-    Reorg,
-    StarkNetEvent,
-)
+from apibara.model import (BlockHeader, EventFilter, NewBlock, NewEvents,
+                           Reorg, StarkNetEvent)
 
 UserContext = TypeVar("UserContext")
 
@@ -28,6 +22,22 @@ UserContext = TypeVar("UserContext")
 class Info(Generic[UserContext]):
     context: UserContext
     storage: Storage
+
+    _new_event_filters: List[EventFilter] = field(default_factory=list)
+
+    def add_event_filters(self, filters: List[EventFilter]):
+        """Add the provided event filters to the indexer.
+
+        The indexer will re-scan the current block for any event
+        matching the new filters.
+        """
+        self._new_event_filters.extend(filters)
+
+    def _take_new_event_filters(self):
+        """Returns and empties the current EventFilter list."""
+        filters = self._new_event_filters
+        self._new_event_filters = []
+        return filters
 
 
 NewEventsHandler = Callable[[Info, NewEvents], Awaitable[None]]
@@ -66,10 +76,8 @@ class IndexerRunner(Generic[UserContext]):
         self._indexer_storage = IndexerStorage(
             self._config.storage_url, self._indexer_id
         )
-        # self._rpc_client = StarkNetRpcClient(self._config.rpc_url)
 
         self._indexer_config = None
-        self._compiled_filters = None
         self._event_name_map = dict()
 
     def create_if_not_exists(
@@ -108,6 +116,7 @@ class IndexerRunner(Generic[UserContext]):
         self._check_config()
         if self._reset_state:
             self._delete_old_state()
+        self._write_initial_state()
         await self._do_run()
 
     def _check_config(self):
@@ -129,17 +138,18 @@ class IndexerRunner(Generic[UserContext]):
     def _delete_old_state(self):
         self._indexer_storage.drop_database()
 
-    async def _do_run(self):
-        # Try to start from where the previous run left off
-        starting_sequence = self._indexer_storage.starting_sequence()
-        if starting_sequence is None:
-            starting_sequence = self._indexer_config["index_from_block"]
+    def _write_initial_state(self):
+        self._indexer_storage.initialize(
+            self._indexer_config["index_from_block"], self._indexer_config["filters"]
+        )
 
+    async def _do_run(self):
         client = AsyncClient(self._config.apibara_url, ssl=self._config.apibara_ssl)
 
         node_service = await client.service("apibara.node.v1alpha1.Node")
-
-        self._compile_event_filters()
+        starting_sequence = self._indexer_storage.starting_sequence()
+        filters_def = self._indexer_storage.event_filters()
+        filters = [CompiledEventFilter.from_event_filter(f) for f in filters_def]
 
         async for message in await node_service.Connect(
             {"starting_sequence": starting_sequence}
@@ -147,12 +157,45 @@ class IndexerRunner(Generic[UserContext]):
             if "data" in message:
                 block = message["data"]["data"]
                 block_header = BlockHeader.from_proto(block)
-                events = self._block_events_matching_filters(block)
-                new_events = NewEvents(block=block_header, events=events)
-
                 with self._block_context(block_header.number) as info:
-                    if new_events.events:
-                        await self._new_events_handler(info, new_events)
+                    # new filters added across all loops of this block
+                    new_filters = []
+                    # filters for this specific loop
+                    loop_filters = filters
+                    while loop_filters:
+                        events = self._block_events_matching_filters(
+                            loop_filters, block
+                        )
+                        new_events = NewEvents(block=block_header, events=events)
+
+                        if self._block_handler:
+                            new_block = NewBlock(new_head=block_header)
+                            await self._block_handler(info, new_block)
+                        if new_events.events:
+                            await self._new_events_handler(info, new_events)
+
+                        if info._new_event_filters:
+                            new_loop_filters = info._take_new_event_filters()
+                            new_filters.extend(new_loop_filters)
+
+                            loop_filters = [
+                                CompiledEventFilter.from_event_filter(f)
+                                for f in new_loop_filters
+                            ]
+                        else:
+                            loop_filters = False
+
+                    # finished parsing events. update state with the new filters
+                    if new_filters:
+                        filters_def.extend(new_filters)
+                        filters_def = _unique_event_filters(filters_def)
+                        self._indexer_storage._set_event_filters(
+                            filters_def, session=info.storage._session
+                        )
+                        filters = [
+                            CompiledEventFilter.from_event_filter(f)
+                            for f in filters_def
+                        ]
 
             elif "invalidate" in message:
                 raise RuntimeError("reorg are not expected on StarkNet")
@@ -162,13 +205,7 @@ class IndexerRunner(Generic[UserContext]):
         with self._indexer_storage.create_storage_for_block(number) as storage:
             yield Info(context=self._context, storage=storage)
 
-    def _compile_event_filters(self):
-        self._compiled_filters = [
-            CompiledEventFilter.from_event_filter(filter)
-            for filter in self._indexer_config["filters"]
-        ]
-
-    def _block_events_matching_filters(self, block):
+    def _block_events_matching_filters(self, filters, block):
         matched_events = []
         log_index = 0
         transactions = block["transactions"]
@@ -176,16 +213,18 @@ class IndexerRunner(Generic[UserContext]):
             tx = transactions[int(receipt.get("transaction_index", 0))]
             if "events" in receipt:
                 for event in receipt["events"]:
-                    event_name, matched = self._filter_matching(event)
+                    event_name, matched = self._filter_matching(filters, event)
                     if matched:
                         tx_hash = _transaction_hash(tx)
-                        event = StarkNetEvent.from_proto(event, log_index, event_name, tx_hash)
+                        event = StarkNetEvent.from_proto(
+                            event, log_index, event_name, tx_hash
+                        )
                         matched_events.append(event)
                     log_index += 1
         return matched_events
 
-    def _filter_matching(self, event):
-        for filter in self._compiled_filters:
+    def _filter_matching(self, filters, event):
+        for filter in filters:
             if filter.matches(event):
                 return filter.name, True
         return None, False
@@ -206,7 +245,7 @@ class CompiledEventFilter:
         return CompiledEventFilter(
             name=filter.signature,
             keys=[ContractFunction.get_selector(filter.signature).to_bytes(32, "big")],
-            address=address
+            address=address,
         )
 
     def matches(self, event):
@@ -236,3 +275,7 @@ def _transaction_hash(tx) -> bytes:
     else:
         raise RuntimeError("unknown transaction type")
     return base64.b64decode(common["hash"])
+
+
+def _unique_event_filters(filters: List[EventFilter]) -> List[EventFilter]:
+    return list(set(filters))
