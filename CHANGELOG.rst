@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.5 (2022-10-07)
+-------------------------------------
+
+Fixed
+^^^^^
+
+ - Handle StarkNet blocks with no transactions. This usually happens on custom
+ connections to devnet.
+
+
 Apibara Python SDK 0.5.4 (2022-10-01)
 -------------------------------------
 
