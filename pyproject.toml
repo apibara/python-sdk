@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "apibara"
-version = "0.5.4"
+version = "0.5.5"
 description = "Apibara cliend SDK. Build web3-powered applications."
 authors = ["Francesco Ceccon <francesco@apibara.com>"]
 license = "Apache-2.0"

@@ -248,8 +248,8 @@ class IndexerRunner(Generic[UserContext]):
     def _block_events_matching_filters(self, filters, block):
         matched_events = []
         log_index = 0
-        transactions = block["transactions"]
-        for receipt in block["transaction_receipts"]:
+        transactions = block.get("transactions", [])
+        for receipt in block.get("transaction_receipts",[]):
             tx = transactions[int(receipt.get("transaction_index", 0))]
             if "events" in receipt:
                 for event in receipt["events"]:
