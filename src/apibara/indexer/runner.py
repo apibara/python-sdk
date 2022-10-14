@@ -191,7 +191,7 @@ class IndexerRunner(Generic[UserContext]):
         filters_def = self._indexer_storage.event_filters()
         filters = [CompiledEventFilter.from_event_filter(f) for f in filters_def]
 
-        async for message in await node_service.Connect(
+        async for message in await node_service.StreamMessages(
             {"starting_sequence": starting_sequence}
         ):
             if "data" in message:
