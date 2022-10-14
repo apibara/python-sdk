@@ -1,6 +1,16 @@
 Changelog
 =========
 
+
+Apibara Python SDK 0.5.6 (2022-10-14)
+-------------------------------------
+
+Fixed
+^^^^^
+
+ - Use the new :code:`Node.StreamMessages` method.
+
+
 Apibara Python SDK 0.5.5 (2022-10-07)
 -------------------------------------
 
