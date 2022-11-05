@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.7 (2022-11-05)
+-------------------------------------
+
+Changed
+^^^^^^^
+
+ - Raise :code:`asyncio.TimeoutError` if the message stream hangs and doesn't
+ receive any message for more than 45 seconds.
+
 
 Apibara Python SDK 0.5.6 (2022-10-14)
 -------------------------------------

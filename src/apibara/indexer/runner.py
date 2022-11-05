@@ -1,5 +1,6 @@
 """Apibara indexer runner."""
 
+import asyncio
 import base64
 import warnings
 from contextlib import contextmanager
@@ -191,9 +192,16 @@ class IndexerRunner(Generic[UserContext]):
         filters_def = self._indexer_storage.event_filters()
         filters = [CompiledEventFilter.from_event_filter(f) for f in filters_def]
 
-        async for message in await node_service.StreamMessages(
+        message_stream = await node_service.StreamMessages(
             {"starting_sequence": starting_sequence}
-        ):
+        )
+
+        while True:
+            # We expect one heartbeat every 30 seconds
+            # Add 15 seconds of buffer, we the stream doesn't produce any message
+            # in this timeframe then there is something wrong with the stream.
+            message = await asyncio.wait_for(message_stream.__anext__(), timeout=45.0)
+
             if "data" in message:
                 block = message["data"]["data"]
                 block_header = BlockHeader.from_proto(block)
