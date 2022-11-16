@@ -13,8 +13,14 @@ from starknet_py.contract import ContractFunction
 
 from apibara.indexer.storage import IndexerStorage, Storage
 from apibara.logging import logger
-from apibara.model import (BlockHeader, EventFilter, NewBlock, NewEvents,
-                           Reorg, StarkNetEvent)
+from apibara.model import (
+    BlockHeader,
+    EventFilter,
+    NewBlock,
+    NewEvents,
+    Reorg,
+    StarkNetEvent,
+)
 
 UserContext = TypeVar("UserContext")
 
@@ -22,7 +28,7 @@ UserContext = TypeVar("UserContext")
 @dataclass
 class Info(Generic[UserContext]):
     """State shared between handlers.
-    
+
     Parameters
     ----------
     context:
@@ -30,6 +36,7 @@ class Info(Generic[UserContext]):
     storage:
         access the chain-aware storage.
     """
+
     context: UserContext
     storage: Storage
 
@@ -58,7 +65,7 @@ ReorgHandler = Callable[[Info, Reorg], Awaitable[None]]
 @dataclass
 class IndexerRunnerConfiguration:
     """IndexerRunner configuration.
-    
+
     Parameters
     ----------
     apibara_url:
@@ -68,6 +75,7 @@ class IndexerRunnerConfiguration:
     storage_url:
         MongoDB connection string, used to store the indexer  data and state.
     """
+
     apibara_url: Optional[str] = None
     apibara_ssl: bool = True
     rpc_url: Optional[str] = None
@@ -76,7 +84,7 @@ class IndexerRunnerConfiguration:
 
 class IndexerRunner(Generic[UserContext]):
     """Run an indexer, listening for new events and calling the provided callbacks.
-    
+
     Parameters
     ----------
     indexer_id:
@@ -104,6 +112,7 @@ class IndexerRunner(Generic[UserContext]):
         self._config = config
         self._new_events_handler = new_events_handler
         self._block_handler = None
+        self._pending_events_handler = None
         self._reorg_handler = None
         self._context = None
         self._indexer_storage = IndexerStorage(
@@ -126,7 +135,7 @@ class IndexerRunner(Generic[UserContext]):
         index_from_block: Optional[int] = None,
     ):
         """Add the initial event filters.
-        
+
         Parameters
         ----------
         filters:
@@ -146,6 +155,14 @@ class IndexerRunner(Generic[UserContext]):
     def add_block_handler(self, block_handler: BlockHandler) -> None:
         """Add a callback called every time there is a new block."""
         self._block_handler = block_handler
+
+    def add_pending_events_handler(
+        self, events_handler: NewEventsHandler, interval_seconds: Optional[int] = None
+    ) -> None:
+        """Add a callback called every time there is a new pending block."""
+        if interval_seconds is None:
+            interval_seconds = 5
+        self._pending_events_handler = (events_handler, interval_seconds)
 
     def add_reorg_handler(self, reorg_handler: ReorgHandler) -> None:
         """Add a callback called every time there is a chain reorganization."""
@@ -188,13 +205,20 @@ class IndexerRunner(Generic[UserContext]):
         client = AsyncClient(self._config.apibara_url, ssl=self._config.apibara_ssl)
 
         node_service = await client.service("apibara.node.v1alpha1.Node")
+
         starting_sequence = self._indexer_storage.starting_sequence()
+        pending_block_interval_seconds = None
+        if self._pending_events_handler is not None:
+            pending_block_interval_seconds = self._pending_events_handler[1]
+        message_stream = await node_service.StreamMessages(
+            {
+                "starting_sequence": starting_sequence,
+                "pending_block_interval_seconds": pending_block_interval_seconds,
+            }
+        )
+
         filters_def = self._indexer_storage.event_filters()
         filters = [CompiledEventFilter.from_event_filter(f) for f in filters_def]
-
-        message_stream = await node_service.StreamMessages(
-            {"starting_sequence": starting_sequence}
-        )
 
         while True:
             # We expect one heartbeat every 30 seconds
@@ -248,6 +272,17 @@ class IndexerRunner(Generic[UserContext]):
             elif "invalidate" in message:
                 raise RuntimeError("reorg are not expected on StarkNet")
 
+            elif "pending" in message:
+                if self._pending_events_handler is not None:
+                    block = message["pending"]["data"]
+                    block_header = BlockHeader.from_proto(block)
+                    handler = self._pending_events_handler[0]
+                    with self._block_context(block_header.number) as info:
+                        events = self._block_events_matching_filters(filters, block)
+                        new_events = NewEvents(block=block_header, events=events)
+                        if new_events.events:
+                            await handler(info, new_events)
+
     @contextmanager
     def _block_context(self, number: int) -> Info[UserContext]:
         with self._indexer_storage.create_storage_for_block(number) as storage:
@@ -257,7 +292,7 @@ class IndexerRunner(Generic[UserContext]):
         matched_events = []
         log_index = 0
         transactions = block.get("transactions", [])
-        for receipt in block.get("transaction_receipts",[]):
+        for receipt in block.get("transaction_receipts", []):
             tx = transactions[int(receipt.get("transaction_index", 0))]
             if "events" in receipt:
                 for event in receipt["events"]:

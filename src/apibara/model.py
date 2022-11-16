@@ -9,9 +9,9 @@ from typing import List, Optional, Union
 @dataclass(eq=True, frozen=True)
 class EventFilter:
     """Filter transactions events based on their signature.
-    
+
     The EventFilter can, optionally, filter by the emitting contract.
-    
+
     Parameters
     ----------
     signature:
@@ -19,6 +19,7 @@ class EventFilter:
     address:
         the contract address.
     """
+
     signature: str
     address: Optional[bytes]
 
@@ -54,7 +55,7 @@ class EventFilter:
 @dataclass
 class BlockHeader:
     """Information about a block.
-    
+
     Parameters
     ----------
     hash:
@@ -66,6 +67,7 @@ class BlockHeader:
     timestamp:
         the block timestamp.
     """
+
     hash: bytes
     parent_hash: Optional[bytes]
     number: int
@@ -73,7 +75,9 @@ class BlockHeader:
 
     @classmethod
     def from_proto(cls, block) -> "BlockHeader":
-        hash = base64.b64decode(block["block_hash"]["hash"]).ljust(32, b"\0")
+        hash = block.get("block_hash")
+        if hash is not None:
+            hash = base64.b64decode(block["block_hash"]["hash"]).ljust(32, b"\0")
         parent_hash = base64.b64decode(block["parent_block_hash"]["hash"]).ljust(
             32, b"\0"
         )
@@ -84,19 +88,23 @@ class BlockHeader:
         )
 
     def __str__(self) -> str:
-        return f"BlockHeader(hash=0x{self.hash.hex()}, parent_hash=0x{self.parent_hash.hex()}, number={self.number}, timestamp={self.timestamp})"
+        hash = "None"
+        if self.hash is not None:
+            hash = f"0x${self.hash.hex()}"
+        return f"BlockHeader(hash={hash}, parent_hash=0x{self.parent_hash.hex()}, number={self.number}, timestamp={self.timestamp})"
 
 
 @dataclass
 class Event:
     """Base class for chain-specific events."""
+
     pass
 
 
 @dataclass
 class StarkNetEvent(Event):
     """StarkNet event.
-    
+
     Parameters
     ----------
     name:
@@ -112,6 +120,7 @@ class StarkNetEvent(Event):
     transaction_hash:
         hash of the transaction emitting the event.
     """
+
     name: Optional[str]
     address: bytes
     log_index: int
@@ -137,12 +146,13 @@ class StarkNetEvent(Event):
 @dataclass
 class NewBlock:
     """Information about a new block being indexed.
-    
+
     Parameters
     ----------
     new_head:
         block header.
     """
+
     new_head: BlockHeader
 
 
@@ -154,7 +164,7 @@ class Reorg:
 @dataclass
 class NewEvents:
     """Information about indexed events in a block.
-    
+
     Parameters
     ----------
     block
@@ -162,5 +172,6 @@ class NewEvents:
     events:
         list of events.
     """
+
     block: BlockHeader
     events: List[Event]
