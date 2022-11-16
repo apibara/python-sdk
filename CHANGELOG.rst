@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.8 (2022-11-16)
+-------------------------------------
+
+Added
+^^^^^
+
+ - Add support for pending blocks and events.
+
+
 Apibara Python SDK 0.5.7 (2022-11-05)
 -------------------------------------
 
