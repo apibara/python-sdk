@@ -207,15 +207,13 @@ class IndexerRunner(Generic[UserContext]):
         node_service = await client.service("apibara.node.v1alpha1.Node")
 
         starting_sequence = self._indexer_storage.starting_sequence()
-        pending_block_interval_seconds = None
+        stream_messages_request = {
+            "starting_sequence": starting_sequence,
+        }
         if self._pending_events_handler is not None:
             pending_block_interval_seconds = self._pending_events_handler[1]
-        message_stream = await node_service.StreamMessages(
-            {
-                "starting_sequence": starting_sequence,
-                "pending_block_interval_seconds": pending_block_interval_seconds,
-            }
-        )
+            stream_messages_request["pending_block_interval_seconds"] = pending_block_interval_seconds
+        message_stream = await node_service.StreamMessages(stream_messages_request)
 
         filters_def = self._indexer_storage.event_filters()
         filters = [CompiledEventFilter.from_event_filter(f) for f in filters_def]

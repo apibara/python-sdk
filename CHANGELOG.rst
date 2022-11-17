@@ -1,6 +1,16 @@
 Changelog
 =========
 
+
+Apibara Python SDK 0.5.9 (2022-11-17)
+-------------------------------------
+
+Fixed
+^^^^^
+
+ - Keep library backward-compatible with older Apibara streams.
+
+
 Apibara Python SDK 0.5.8 (2022-11-16)
 -------------------------------------
 
