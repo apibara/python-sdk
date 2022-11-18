@@ -65,6 +65,24 @@ class IndexerStorage:
             session=session,
         )
 
+    def invalidate(self, block_number: int):
+        """Invalidates all data generate in `block_number` and later."""
+        with self._mongo.start_session() as session:
+            for collection in self.db.list_collections(session=session):
+                name = collection["name"]
+                if name.startswith("_"):
+                    continue
+                # remove items inserted in or after block_number
+                self.db[name].delete_many(
+                    {"_chain.valid_from": {"$gte": block_number}}, session=session
+                )
+                # rollback items updated in or after block_number
+                self.db[name].update_many(
+                    {"_chain.valid_to": {"$gte": block_number}},
+                    {"$set": {"_chain.valid_to": None}},
+                    session=session,
+                )
+
     def drop_database(self):
         self._mongo.drop_database(self.db_name)
 

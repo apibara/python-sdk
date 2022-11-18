@@ -212,7 +212,9 @@ class IndexerRunner(Generic[UserContext]):
         }
         if self._pending_events_handler is not None:
             pending_block_interval_seconds = self._pending_events_handler[1]
-            stream_messages_request["pending_block_interval_seconds"] = pending_block_interval_seconds
+            stream_messages_request[
+                "pending_block_interval_seconds"
+            ] = pending_block_interval_seconds
         message_stream = await node_service.StreamMessages(stream_messages_request)
 
         filters_def = self._indexer_storage.event_filters()
