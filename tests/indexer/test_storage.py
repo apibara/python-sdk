@@ -72,13 +72,55 @@ async def test_delete_many(storage: IndexerStorage):
             ],
         )
 
-    with storage.create_storage_for_block(100) as s:
+    with storage.create_storage_for_block(101) as s:
         await s.delete_many("capibaras", {"age": {"$gte": 4}})
 
     with storage.create_storage_for_block(102) as s:
         capybaras = await s.find("capibaras", {})
         capybaras = list(capybaras)
         assert len(capybaras) == 1
+
+
+@pytest.mark.asyncio
+async def test_find_one_and_replace(storage: IndexerStorage):
+    with storage.create_storage_for_block(100) as s:
+        await s.insert_many(
+            "capibaras",
+            [
+                {"name": "bob", "age": 3},
+                {"name": "charlie", "age": 4},
+                {"name": "dylan", "age": 8},
+            ],
+        )
+
+    with storage.create_storage_for_block(101) as s:
+        await s.find_one_and_replace(
+            "capibaras", {"name": "bob"}, {"name": "bob", "age": 10}
+        )
+
+    with storage.create_storage_for_block(102) as s:
+        bob = await s.find_one("capibaras", {"name": "bob"})
+        assert bob["age"] == 10
+
+
+@pytest.mark.asyncio
+async def test_find_one_and_update(storage: IndexerStorage):
+    with storage.create_storage_for_block(100) as s:
+        await s.insert_many(
+            "capibaras",
+            [
+                {"name": "bob", "age": 3},
+                {"name": "charlie", "age": 4},
+                {"name": "dylan", "age": 8},
+            ],
+        )
+
+    with storage.create_storage_for_block(101) as s:
+        await s.find_one_and_update("capibaras", {"name": "bob"}, {"$set": {"age": 10}})
+
+    with storage.create_storage_for_block(102) as s:
+        bob = await s.find_one("capibaras", {"name": "bob"})
+        assert bob["age"] == 10
 
 
 @pytest.mark.asyncio
