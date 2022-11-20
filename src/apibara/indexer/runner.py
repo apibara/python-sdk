@@ -215,12 +215,14 @@ class IndexerRunner(Generic[UserContext]):
             stream_messages_request[
                 "pending_block_interval_seconds"
             ] = pending_block_interval_seconds
+        logger.debug("starting stream")
         message_stream = await node_service.StreamMessages(stream_messages_request)
 
         filters_def = self._indexer_storage.event_filters()
         filters = [CompiledEventFilter.from_event_filter(f) for f in filters_def]
 
         if starting_sequence is not None:
+            logger.debug("invalidate pending data")
             # Remove any pending data from the previous run
             self._indexer_storage.invalidate(starting_sequence)
 
@@ -235,6 +237,7 @@ class IndexerRunner(Generic[UserContext]):
             message = await asyncio.wait_for(message_stream.__anext__(), timeout=45.0)
 
             if "data" in message:
+                logger.debug("received data")
                 block = message["data"]["data"]
                 block_header = BlockHeader.from_proto(block)
 
@@ -282,9 +285,12 @@ class IndexerRunner(Generic[UserContext]):
                         ]
 
             elif "invalidate" in message:
-                raise RuntimeError("reorg are not expected on StarkNet")
+                logger.debug("received invalidate")
+                sequence = message["invalidate"]["sequence"]
+                self._indexer_storage.invalidate(sequence)
 
             elif "pending" in message:
+                logger.debug("received pending")
                 if self._pending_events_handler is not None:
                     block = message["pending"]["data"]
                     block_header = BlockHeader.from_proto(block)
