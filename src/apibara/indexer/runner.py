@@ -220,6 +220,14 @@ class IndexerRunner(Generic[UserContext]):
         filters_def = self._indexer_storage.event_filters()
         filters = [CompiledEventFilter.from_event_filter(f) for f in filters_def]
 
+        if starting_sequence is not None:
+            # Remove any pending data from the previous run
+            self._indexer_storage.invalidate(starting_sequence)
+
+        # Flag to check if the indexer has received any pending block.
+        # Perform data invalidation before every `data` block if that's the case.
+        has_received_pending_block = False
+
         while True:
             # We expect one heartbeat every 30 seconds
             # Add 15 seconds of buffer, we the stream doesn't produce any message
@@ -229,6 +237,10 @@ class IndexerRunner(Generic[UserContext]):
             if "data" in message:
                 block = message["data"]["data"]
                 block_header = BlockHeader.from_proto(block)
+
+                if has_received_pending_block:
+                    self._indexer_storage.invalidate(block_header.number)
+
                 with self._block_context(block_header.number) as info:
                     # new filters added across all loops of this block
                     new_filters = []
@@ -281,6 +293,7 @@ class IndexerRunner(Generic[UserContext]):
                         events = self._block_events_matching_filters(filters, block)
                         new_events = NewEvents(block=block_header, events=events)
                         if new_events.events:
+                            has_received_pending_block = True
                             await handler(info, new_events)
 
     @contextmanager
