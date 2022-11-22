@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.10 (2022-11-22)
+-------------------------------------
+
+Changed
+^^^^^^^
+
+ - Invalidate data on chain reorgs and after pending blocks.
+
 
 Apibara Python SDK 0.5.9 (2022-11-17)
 -------------------------------------
