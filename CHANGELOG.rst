@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.11 (2022-11-23)
+-------------------------------------
+
+Fixed
+^^^^^
+
+ - Handle deploy account transactions
+
+Changed
+^^^^^^^
+
+ - Invalidate data between pending blocks handlers.
+
+
 Apibara Python SDK 0.5.10 (2022-11-22)
 -------------------------------------
 
