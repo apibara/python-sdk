@@ -295,6 +295,10 @@ class IndexerRunner(Generic[UserContext]):
                     block = message["pending"]["data"]
                     block_header = BlockHeader.from_proto(block)
                     handler = self._pending_events_handler[0]
+
+                    if has_received_pending_block:
+                        self._indexer_storage.invalidate(block_header.number)
+
                     with self._block_context(block_header.number) as info:
                         events = self._block_events_matching_filters(filters, block)
                         new_events = NewEvents(block=block_header, events=events)
@@ -370,6 +374,8 @@ def _transaction_hash(tx) -> bytes:
         common = tx["invoke"]["common"]
     elif "deploy" in tx:
         common = tx["deploy"]["common"]
+    elif "deploy_account" in tx:
+        common = tx["deploy_account"]["common"]
     elif "declare" in tx:
         common = tx["declare"]["common"]
     elif "l1_handler" in tx:
