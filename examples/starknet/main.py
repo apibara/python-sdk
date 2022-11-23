@@ -174,9 +174,7 @@ async def main(argv):
         new_events_handler=handle_events,
     )
 
-    runner.set_context({
-        "network": "starknet-goerli"
-    })
+    runner.set_context({"network": "starknet-goerli"})
 
     runner.add_block_handler(handle_block)
 

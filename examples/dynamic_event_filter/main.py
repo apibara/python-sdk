@@ -87,15 +87,17 @@ async def handle_pair_created(info: Info, block: BlockHeader, event: StarkNetEve
     doc = {
         "pair": pair_created.pair.to_bytes(32, "big"),
         "token0": pair_created.token0.to_bytes(32, "big"),
-        "token1": pair_created.token1.to_bytes(32, "big")
+        "token1": pair_created.token1.to_bytes(32, "big"),
     }
     await info.storage.insert_one("pairs", doc)
 
     # Start tracking events from pair contract
-    info.add_event_filters(filters=[
-        EventFilter.from_event_name("Swap", address=pair_created.pair),
-        EventFilter.from_event_name("Sync", address=pair_created.pair),
-    ])
+    info.add_event_filters(
+        filters=[
+            EventFilter.from_event_name("Swap", address=pair_created.pair),
+            EventFilter.from_event_name("Sync", address=pair_created.pair),
+        ]
+    )
 
 
 async def handle_sync(info: Info, block: BlockHeader, event: StarkNetEvent):
@@ -112,9 +114,9 @@ async def handle_events(info: Info, block_events: NewEvents):
     for event in block_events.events:
         if event.name == "pair_created":
             await handle_pair_created(info, block_events.block, event)
-        elif event.name == 'Sync':
+        elif event.name == "Sync":
             await handle_sync(info, block_events.block, event)
-        elif event.name == 'Swap':
+        elif event.name == "Swap":
             await handle_swap(info, block_events.block, event)
 
 
@@ -137,16 +139,15 @@ async def main(argv):
         new_events_handler=handle_events,
     )
 
-    runner.set_context({
-        "network": "starknet-goerli"
-    })
+    runner.set_context({"network": "starknet-goerli"})
 
     # runner.add_block_handler(handle_block)
 
     # Add a filter on the factory to detect when pairs are created.
     runner.add_event_filters(
         filters=[
-            EventFilter.from_event_name(name="pair_created", address=factory_address)],
+            EventFilter.from_event_name(name="pair_created", address=factory_address)
+        ],
         index_from_block=255_650,
     )
 
