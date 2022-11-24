@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.5.12 (2022-11-24)
+-------------------------------------
+
+Added
+^^^^^
+
+ - Introduce :code:`MessageHandler` to simplify testing.
+
+
 Apibara Python SDK 0.5.11 (2022-11-23)
 -------------------------------------
 
