@@ -3,7 +3,8 @@ import sys
 from argparse import ArgumentParser
 from typing import List, NamedTuple
 
-from starknet_py.contract import FunctionCallSerializer, identifier_manager_from_abi
+from starknet_py.contract import (FunctionCallSerializer,
+                                  identifier_manager_from_abi)
 
 from apibara import EventFilter, Info, NewBlock, NewEvents
 from apibara.indexer.runner import IndexerRunner, IndexerRunnerConfiguration

@@ -3,12 +3,12 @@ import sys
 from argparse import ArgumentParser
 from typing import List, NamedTuple
 
-from starknet_py.contract import FunctionCallSerializer, identifier_manager_from_abi
+from starknet_py.contract import (FunctionCallSerializer,
+                                  identifier_manager_from_abi)
 
 from apibara import EventFilter, Info, NewBlock, NewEvents
 from apibara.indexer.runner import IndexerRunner, IndexerRunnerConfiguration
 from apibara.model import BlockHeader, StarkNetEvent
-
 
 indexer_id = "jediswap-testnet"
 factory_address = "0x06c872d0696e7bf45735239393774f51455e3bdb08760a0dc76cd7c8688cfd60"

@@ -1,15 +1,7 @@
 import pytest
 
 from apibara.indexer.storage import IndexerStorage
-
-
-@pytest.fixture(scope="function")
-def storage():
-    connection_url = "mongodb://apibara:apibara@localhost:27017"
-    storage = IndexerStorage(connection_url, "python-sdk-test-db")
-    yield storage
-    # cleanup database
-    storage.drop_database()
+from tests.conftest import storage
 
 
 @pytest.mark.asyncio

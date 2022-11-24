@@ -1,7 +1,7 @@
 # This example shows how to handle pending blocks.
 import asyncio
-from argparse import ArgumentParser
 import sys
+from argparse import ArgumentParser
 from typing import List, Tuple
 
 from apibara import EventFilter, Info, NewBlock, NewEvents
