@@ -30,16 +30,38 @@ class IndexerStorage:
     def create_storage_for_block(self, block_number: int) -> Iterator["Storage"]:
         with self._mongo.start_session() as session:
             yield Storage(self.db, session, block_number)
+
+    @contextmanager
+    def create_storage_for_data(self, block_number: int) -> Iterator["Storage"]:
+        with self._mongo.start_session() as session:
+            yield Storage(self.db, session, block_number)
             self._update_indexed_to(block_number, session)
+
+    @contextmanager
+    def create_storage_for_invalidate(self, block_number: int) -> Iterator["Storage"]:
+        with self._mongo.start_session() as session:
+            yield Storage(self.db, session, block_number)
+            if block_number > 0:
+                self._update_indexed_to(block_number - 1, session)
+
+    @contextmanager
+    def create_storage_for_pending(self, block_number: int) -> Iterator["Storage"]:
+        with self._mongo.start_session() as session:
+            yield Storage(self.db, session, block_number)
 
     def initialize(self, starting_sequence: int, filters: List[EventFilter]):
         existing = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
         if existing is not None:
             return
+        # the indexer hasn't really started indexing anything yet, but if it's
+        # stopped right before receiving any message it will restart from the
+        # next block, skipping the starting block.
+        indexed_to = starting_sequence - 1
+
         self.db["_apibara"].insert_one(
             {
                 "indexer_id": self._indexer_id,
-                "indexed_to": starting_sequence,
+                "indexed_to": indexed_to,
                 "filters": [f.to_json() for f in filters],
             }
         )

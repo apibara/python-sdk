@@ -49,6 +49,7 @@ async def test_invalidate_after_data(storage: IndexerStorage):
     context = dict()
 
     mock = MockHandler()
+    storage.initialize(11000, [])
 
     handler = MessageHandler(
         data_handler=mock.data_handler,
@@ -64,6 +65,8 @@ async def test_invalidate_after_data(storage: IndexerStorage):
     block = data["data"]["data"]
 
     await handler.handle_data(block)
+    next_starting_sequence = storage.starting_sequence()
+    assert next_starting_sequence == 11001
 
     assert mock.data_called
     assert mock.block_called
@@ -78,6 +81,9 @@ async def test_invalidate_after_data(storage: IndexerStorage):
         assert len(blocks) == 1
 
     await handler.handle_invalidate({"sequence": 11000})
+    # invalidated all data _at and after_ 11000, so will restart from 11000
+    next_starting_sequence = storage.starting_sequence()
+    assert next_starting_sequence == 11000
 
     assert not mock.data_called
     assert not mock.block_called
@@ -97,6 +103,7 @@ async def test_pending_after_pending(storage: IndexerStorage):
     context = dict()
 
     mock = MockHandler()
+    storage.initialize(11000, [])
 
     handler = MessageHandler(
         data_handler=mock.data_handler,
@@ -112,6 +119,9 @@ async def test_pending_after_pending(storage: IndexerStorage):
     block = data["data"]["data"]
 
     await handler.handle_pending(block)
+    # pending blocks don't update starting sequence
+    next_starting_sequence = storage.starting_sequence()
+    assert next_starting_sequence == 11000
 
     assert not mock.data_called
     assert not mock.block_called
@@ -128,6 +138,9 @@ async def test_pending_after_pending(storage: IndexerStorage):
         assert pendings[0]["number"] == 11000
 
     await handler.handle_pending(block)
+    # pending blocks don't update starting sequence
+    next_starting_sequence = storage.starting_sequence()
+    assert next_starting_sequence == 11000
 
     assert not mock.data_called
     assert not mock.block_called
@@ -149,6 +162,7 @@ async def test_data_after_pending(storage: IndexerStorage):
     context = dict()
 
     mock = MockHandler()
+    storage.initialize(11000, [])
 
     handler = MessageHandler(
         data_handler=mock.data_handler,
@@ -164,6 +178,9 @@ async def test_data_after_pending(storage: IndexerStorage):
     block = data["data"]["data"]
 
     await handler.handle_pending(block)
+    # pending blocks don't update starting sequence
+    next_starting_sequence = storage.starting_sequence()
+    assert next_starting_sequence == 11000
 
     assert not mock.data_called
     assert not mock.block_called
@@ -180,6 +197,9 @@ async def test_data_after_pending(storage: IndexerStorage):
         assert pendings[0]["number"] == 11000
 
     await handler.handle_data(block)
+    # data blocks do
+    next_starting_sequence = storage.starting_sequence()
+    assert next_starting_sequence == 11001
 
     assert mock.data_called
     assert mock.block_called

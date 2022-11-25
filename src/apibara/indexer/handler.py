@@ -79,7 +79,7 @@ class MessageHandler:
         if self._has_received_pending_block:
             self._storage.invalidate(block_header.number)
 
-        with self._block_context(block_header.number) as info:
+        with self._data_context(block_header.number) as info:
             if self._block_handler:
                 new_block = NewBlock(new_head=block_header)
                 await self._block_handler(info, new_block)
@@ -120,7 +120,7 @@ class MessageHandler:
         sequence = invalidate["sequence"]
         self._storage.invalidate(sequence)
         if self._reorg_handler:
-            with self._block_context(sequence) as info:
+            with self._invalidate_context(sequence) as info:
                 await self._reorg_handler(info, sequence)
 
     async def handle_pending(self, block: Any):
@@ -140,7 +140,7 @@ class MessageHandler:
         if not new_events.events:
             return
 
-        with self._block_context(block_header.number) as info:
+        with self._pending_context(block_header.number) as info:
             self._has_received_pending_block = True
             await self._pending_handler(info, new_events)
             if info._take_new_matcher():
@@ -149,6 +149,16 @@ class MessageHandler:
                 )
 
     @contextmanager
-    def _block_context(self, number: int) -> Info[UserContext]:
-        with self._storage.create_storage_for_block(number) as storage:
+    def _data_context(self, number: int) -> Info[UserContext]:
+        with self._storage.create_storage_for_data(number) as storage:
+            yield Info(context=self._context, storage=storage)
+
+    @contextmanager
+    def _invalidate_context(self, number: int) -> Info[UserContext]:
+        with self._storage.create_storage_for_invalidate(number) as storage:
+            yield Info(context=self._context, storage=storage)
+
+    @contextmanager
+    def _pending_context(self, number: int) -> Info[UserContext]:
+        with self._storage.create_storage_for_pending(number) as storage:
             yield Info(context=self._context, storage=storage)
