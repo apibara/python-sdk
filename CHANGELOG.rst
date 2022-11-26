@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+Apibara Python SDK 0.5.14 (2022-11-26)
+--------------------------------------
+
+Fixed
+^^^^^
+
+ - Fix exception caused by pending block handler.
+
+
 Apibara Python SDK 0.5.13 (2022-11-25)
 --------------------------------------
 
