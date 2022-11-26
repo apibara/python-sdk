@@ -167,7 +167,9 @@ class IndexerRunner(Generic[UserContext]):
         stream_messages_request = {
             "starting_sequence": starting_sequence,
         }
+        pending_handler = None
         if self._pending_events_handler is not None:
+            pending_handler = self._pending_events_handler[0]
             pending_block_interval_seconds = self._pending_events_handler[1]
             stream_messages_request[
                 "pending_block_interval_seconds"
@@ -181,7 +183,7 @@ class IndexerRunner(Generic[UserContext]):
             data_handler=self._new_events_handler,
             block_handler=self._block_handler,
             reorg_handler=self._reorg_handler,
-            pending_handler=self._pending_events_handler,
+            pending_handler=pending_handler,
             context=self._context,
             storage=self._indexer_storage,
             starting_filters=starting_filters,
