@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+Apibara Python SDK 0.5.15 (2022-12-01)
+--------------------------------------
+
+Fixed
+^^^^^
+
+ - Fix exception when starting block is not specified.
+
+
 Apibara Python SDK 0.5.14 (2022-11-26)
 --------------------------------------
 
