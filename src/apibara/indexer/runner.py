@@ -154,8 +154,12 @@ class IndexerRunner(Generic[UserContext]):
         self._indexer_storage.drop_database()
 
     def _write_initial_state(self):
+        index_from_block = self._indexer_config.get("index_from_block")
+        if index_from_block is None:
+            index_from_block = 0
+
         self._indexer_storage.initialize(
-            self._indexer_config["index_from_block"], self._indexer_config["filters"]
+            index_from_block, self._indexer_config["filters"]
         )
 
     async def _do_run(self):
