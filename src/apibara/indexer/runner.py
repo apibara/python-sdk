@@ -7,9 +7,13 @@ from typing import Generic, List, Optional
 
 from grpc_requests.aio import AsyncClient
 
-from apibara.indexer.handler import (BlockHandler, MessageHandler,
-                                     NewEventsHandler, ReorgHandler,
-                                     UserContext)
+from apibara.indexer.handler import (
+    BlockHandler,
+    MessageHandler,
+    NewEventsHandler,
+    ReorgHandler,
+    UserContext,
+)
 from apibara.indexer.storage import IndexerStorage
 from apibara.logging import logger
 from apibara.model import BlockHeader, EventFilter, NewBlock, NewEvents

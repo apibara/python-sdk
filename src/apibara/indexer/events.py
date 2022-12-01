@@ -24,10 +24,7 @@ class EventMatcher:
             for event in events:
                 event_name, matched = self._find_filter_matching_event(event)
                 if matched:
-                    tx_hash = _transaction_hash(tx)
-                    event = StarkNetEvent.from_proto(
-                        event, log_index, event_name, tx_hash
-                    )
+                    event = StarkNetEvent.from_proto(event, log_index, event_name, tx)
                     matched_events.append(event)
                 log_index += 1
         return matched_events

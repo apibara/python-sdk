@@ -127,19 +127,22 @@ class StarkNetEvent(Event):
     topics: List[bytes]
     data: List[bytes]
     transaction_hash: bytes
+    transaction: "Transaction"
 
     @classmethod
-    def from_proto(cls, event, log_index, event_name, tx_hash) -> "StarkNetEvent":
+    def from_proto(cls, event, log_index, event_name, tx) -> "StarkNetEvent":
         address = base64.b64decode(event["from_address"]).ljust(32, b"\0")
         keys = [base64.b64decode(k).ljust(32, b"\0") for k in event["keys"]]
         data = [base64.b64decode(k).ljust(32, b"\0") for k in event["data"]]
+        transaction = Transaction.from_proto(tx)
         return StarkNetEvent(
             name=event_name,
             address=address,
             log_index=log_index,
             topics=keys,
             data=data,
-            transaction_hash=tx_hash,
+            transaction=transaction,
+            transaction_hash=transaction.hash,
         )
 
 
@@ -175,3 +178,129 @@ class NewEvents:
 
     block: BlockHeader
     events: List[Event]
+
+
+@dataclass
+class Transaction:
+    hash: bytes
+    max_fee: Optional[bytes]
+    signature: List[bytes]
+    nonce: Optional[bytes]
+    version: Optional[bytes]
+
+    @classmethod
+    def from_proto(cls, transaction) -> "Transaction":
+        if transaction.get("invoke") is not None:
+            return InvokeTransaction.from_proto(transaction["invoke"])
+        if transaction.get("deploy") is not None:
+            return DeployTransaction.from_proto(transaction["deploy"])
+        if transaction.get("declare") is not None:
+            return DeclareTransaction.from_proto(transaction["declare"])
+        if transaction.get("l1_handler") is not None:
+            return L1HandlerTransaction.from_proto(transaction["l1_handler"])
+        if transaction.get("deploy_account") is not None:
+            return DeployAccountTransaction.from_proto(transaction["deploy_account"])
+        raise RuntimeError("invalid transaction type")
+
+
+@dataclass
+class InvokeTransaction(Transaction):
+    contract_address: bytes
+    entry_point_selector: bytes
+    calldata: List[bytes]
+
+    @classmethod
+    def from_proto(cls, transaction) -> "Transaction":
+        common = _common_attributes(transaction)
+        callable = _callable_attributes(transaction)
+        return InvokeTransaction(**common, **callable)
+
+
+class DeployTransaction(Transaction):
+    constructor_calldata: List[bytes]
+    contract_address: bytes
+    contract_address_salt: bytes
+    class_hash: bytes
+
+    @classmethod
+    def from_proto(cls, transaction) -> "Transaction":
+        raise RuntimeError("Deploy")
+        pass
+
+
+class DeclareTransaction(Transaction):
+    class_hash: bytes
+    sender_address: bytes
+
+    @classmethod
+    def from_proto(cls, transaction) -> "Transaction":
+        raise RuntimeError("Declare")
+        pass
+
+
+@dataclass
+class L1HandlerTransaction(Transaction):
+    contract_address: bytes
+    entry_point_selector: bytes
+    calldata: List[bytes]
+
+    @classmethod
+    def from_proto(cls, transaction) -> "Transaction":
+        common = _common_attributes(transaction)
+        callable = _callable_attributes(transaction)
+        return L1HandlerTransaction(**common, **callable)
+
+
+class DeployAccountTransaction(Transaction):
+    constructor_calldata: List[bytes]
+    contract_address: bytes
+    contract_address_salt: bytes
+    class_hash: bytes
+
+    @classmethod
+    def from_proto(cls, transaction) -> "Transaction":
+        raise RuntimeError("deploy account")
+        pass
+
+
+def _common_attributes(transaction):
+    common = transaction["common"]
+    hash = _from_base64_bytes(common["hash"], 32)
+    max_fee = common.get("max_fee")
+    if max_fee is not None:
+        max_fee = _from_base64_bytes(max_fee)
+    nonce = common.get("nonce")
+    if nonce is not None:
+        nonce = _from_base64_bytes(nonce)
+    version = common.get("version")
+    if version is not None:
+        version = _from_base64_bytes(version)
+    signature = [_from_base64_bytes(s) for s in common.get("signature", [])]
+    return {
+        "hash": hash,
+        "max_fee": max_fee,
+        "nonce": nonce,
+        "version": version,
+        "signature": signature,
+    }
+
+
+def _callable_attributes(transaction):
+    contract_address = transaction.get("contract_address")
+    if contract_address is not None:
+        contract_address = _from_base64_bytes(contract_address, 32)
+    entry_point_selector = transaction.get("entry_point_selector")
+    if entry_point_selector is not None:
+        entry_point_selector = _from_base64_bytes(entry_point_selector)
+    calldata = [_from_base64_bytes(c) for c in transaction.get("calldata", [])]
+    return {
+        "contract_address": contract_address,
+        "entry_point_selector": entry_point_selector,
+        "calldata": calldata,
+    }
+
+
+def _from_base64_bytes(d: str, size: Optional[int] = None) -> bytes:
+    if size is not None:
+        return base64.b64decode(d).ljust(size, b"\0")
+    return base64.b64decode(d)
