@@ -2,6 +2,16 @@ Changelog
 =========
 
 
+
+Apibara Python SDK 0.5.16 (2022-12-05)
+--------------------------------------
+
+Added
+^^^^^
+
+ - Events now include their transaction. Use :code:`event.transaction` to access it.
+
+
 Apibara Python SDK 0.5.15 (2022-12-01)
 --------------------------------------
 
