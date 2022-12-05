@@ -98,7 +98,8 @@ class BlockHeader:
 class Event:
     """Base class for chain-specific events."""
 
-    pass
+    transaction: "Transaction"
+    transaction_hash: bytes
 
 
 @dataclass
@@ -126,8 +127,6 @@ class StarkNetEvent(Event):
     log_index: int
     topics: List[bytes]
     data: List[bytes]
-    transaction_hash: bytes
-    transaction: "Transaction"
 
     @classmethod
     def from_proto(cls, event, log_index, event_name, tx) -> "StarkNetEvent":
