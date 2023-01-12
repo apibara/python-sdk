@@ -1,3 +1,5 @@
 import apibara.starknet.felt as felt
-from apibara.starknet.cursor import starknet_cursor
-from apibara.starknet.filter import Filter
+from apibara.starknet.cursor import *
+from apibara.starknet.filter import *
+from apibara.starknet.proto.starknet_pb2 import Block
+from apibara.starknet.proto.types_pb2 import FieldElement
