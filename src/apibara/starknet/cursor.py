@@ -22,7 +22,7 @@ def starknet_cursor(
         unique_key = _to_bytes(block_hash)
     else:
         unique_key = b""
-    return Cursor(block_number, unique_key)
+    return Cursor(order_key=block_number, unique_key=unique_key)
 
 
 def _to_bytes(hash: Union[bytes, str, FieldElement]) -> bytes:
