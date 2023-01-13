@@ -25,17 +25,17 @@ class StreamService:
         self._stub = StreamStub(self._channel)
 
     def stream_data(self) -> Tuple["StreamClient", "StreamIter"]:
-        ch = _RequestChannel()
-        iter = self._stub.StreamData(ch)
-        client = StreamClient(ch)
-        stream = StreamIter(iter)
+        ctx = _Context()
+        client = StreamClient(ctx)
+        iter = self._stub.StreamData(client.client_stream)
+        stream = StreamIter(ctx, iter)
         return client, stream
 
 
 class StreamClient:
-    def __init__(self, ch: "_RequestChannel") -> None:
-        self._ch = ch
-        self._stream_id = 0
+    def __init__(self, ctx: "_Context") -> None:
+        self._ctx = ctx
+        self.client_stream = _RequestChannel()
 
     async def configure(
         self,
@@ -45,23 +45,37 @@ class StreamClient:
         finality: Optional[DataFinality.ValueType] = None,
         cursor: Optional[Cursor] = None
     ):
-        self._stream_id += 1
+        self._ctx.stream_id += 1
         request = StreamDataRequest(
-            stream_id=self._stream_id,
+            stream_id=self._ctx.stream_id,
             filter=filter,
             starting_cursor=cursor,
             batch_size=batch_size,
             finality=finality,
         )
-        await self._ch.push(request)
+        await self.client_stream.push(request)
 
 
 class StreamIter:
-    def __init__(self, inner: StreamStreamMultiCallable) -> None:
+    def __init__(self, ctx: "_Context", inner: StreamStreamMultiCallable) -> None:
+        self._ctx = ctx
         self._inner = inner
+        self._iter = None
 
     def __aiter__(self) -> AsyncIterable[StreamDataResponse]:
-        return self._inner.__aiter__()
+        self._iter = self._inner.__aiter__()
+        return self
+
+    async def __anext__(self):
+        while True:
+            value = await self._iter.__anext__()
+            if value.stream_id == self._ctx.stream_id:
+                return value
+
+
+class _Context:
+    def __init__(self):
+        self.stream_id = 0
 
 
 class _RequestChannel:
