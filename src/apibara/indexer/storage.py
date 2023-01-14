@@ -1,6 +1,5 @@
 from contextlib import contextmanager
-from typing import (Any, Generic, Iterable, Iterator, List, NewType, Optional,
-                    TypeVar)
+from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 
 from pymongo import MongoClient
 from pymongo.client_session import ClientSession
