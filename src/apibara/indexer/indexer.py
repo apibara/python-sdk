@@ -1,20 +1,14 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, Optional, TypeVar
+from typing import Generic, Optional
 
+from grpc import StatusCode
+from grpc.aio import AioRpcError
+
+from apibara.indexer.configuration import Data, Filter, IndexerConfiguration
 from apibara.indexer.info import Info, UserContext
-from apibara.protocol.proto.stream_pb2 import Cursor, DataFinality
-
-Data = TypeVar("Data")
-Filter = TypeVar("Filter")
-
-
-@dataclass
-class IndexerConfiguration(Generic[Filter]):
-    filter: Filter
-    starting_cursor: Optional[Cursor] = None
-    finality: Optional[DataFinality.ValueType] = None
+from apibara.protocol.proto.stream_pb2 import Cursor
 
 
 @dataclass
@@ -48,7 +42,7 @@ class Indexer(Generic[Filter, Data], metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def parse_data(self, raw: bytes) -> Data:
+    def decode_data(self, raw: bytes) -> Data:
         raise NotImplementedError()
 
     @abstractmethod
@@ -59,5 +53,11 @@ class Indexer(Generic[Filter, Data], metaclass=ABCMeta):
         return
 
     async def handle_reconnect(self, exc: Exception, retry_count: int) -> Reconnect:
+        if not isinstance(exc, AioRpcError):
+            return Reconnect(reconnect=False)
+
+        if exc.code != StatusCode.INTERNAL:
+            return Reconnect(reconnect=False)
+
         await asyncio.sleep(retry_count)
         return Reconnect(reconnect=retry_count < 5)
