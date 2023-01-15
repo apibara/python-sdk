@@ -1,3 +1,4 @@
+import logging
 from contextlib import contextmanager
 from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
 
@@ -6,6 +7,7 @@ from pymongo.client_session import ClientSession
 from pymongo.database import Database
 
 import apibara.cursor as cursor_utils
+from apibara.indexer.configuration import IndexerConfiguration
 from apibara.protocol.proto.stream_pb2 import Cursor
 
 Document = dict[str, Any]
@@ -14,6 +16,9 @@ Update = dict[str, Any]
 Projection = dict[str, any]
 
 Filter = TypeVar("Filter")
+
+
+logger = logging.getLogger(__name__)
 
 
 class IndexerStorage(Generic[Filter]):
@@ -53,47 +58,60 @@ class IndexerStorage(Generic[Filter]):
         with self._mongo.start_session() as session:
             yield Storage(self.db, session=session, cursor=cursor)
 
-    def initialize(self, starting_cursor: Cursor, filter: Filter):
+    def _initialize_configuration(self, configuration: IndexerConfiguration[Filter]):
         existing = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
         if existing is not None:
             return
+
+        logger.debug("writing initial configuration to storage")
+
+        cursor = None
+        if configuration.starting_cursor is not None:
+            cursor = cursor_utils.to_json(configuration.starting_cursor)
+
+        if configuration.filter is None:
+            raise RuntimeError("configuration filter must be defined")
+
+        filter = configuration.filter.encode()
+
         self.db["_apibara"].insert_one(
             {
                 "indexer_id": self._indexer_id,
-                "cursor": cursor_utils.to_json(starting_cursor),
+                "cursor": cursor,
                 "filter": filter,
             }
         )
 
-    def starting_cursor(self) -> Optional[Cursor]:
-        """Returns the starting cursor for the indexer."""
-        state = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
-        if state is None:
-            return None
-        return state.get("cursor")
+    def update_with_stored_configuration(self, initial: IndexerConfiguration[Filter]):
+        logger.debug("update config with stored version")
 
-    def filter(self) -> Optional[Filter]:
-        """Returns the indexer filter."""
-        state = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
-        if state is None:
-            return None
+        stored = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
+        if stored is None:
+            self._initialize_configuration(initial)
+            return initial
 
-        cursor = state.get("cursor")
-        if cursor is None:
-            return None
+        encoded_filter = stored.get("filter")
+        if encoded_filter is None:
+            raise RuntimeError("indexer filter is missing")
+        initial.filter.parse(encoded_filter)
 
-        return Filter.from_json(cursor)
+        cursor = stored.get("cursor")
+        if cursor is not None:
+            initial.starting_cursor = cursor_utils.from_json(cursor)
 
     def _update_filter(self, filter: Filter, session: ClientSession):
         """Set the indexer filter, overriding the previous filter."""
+        logger.debug("update stored filter")
+
         self.db["_apibara"].update_one(
             {"indexer_id": self._indexer_id},
-            {"$set": {"filter": filter.to_json()}},
+            {"$set": {"filter": filter.encode()}},
             session=session,
         )
 
     def invalidate(self, cursor: Cursor):
         """Invalidates all data generate after `cursor`."""
+        logger.debug("invalidate data after %A", cursor)
         with self._mongo.start_session() as session:
             for collection in self.db.list_collections(session=session):
                 name = collection["name"]
@@ -111,12 +129,13 @@ class IndexerStorage(Generic[Filter]):
                 )
 
     def drop_database(self):
+        logger.debug("dropping database %s", self.db_name)
         self._mongo.drop_database(self.db_name)
 
     def _update_cursor(self, cursor: Cursor, session: Optional[ClientSession] = None):
         self.db["_apibara"].update_one(
             {"indexer_id": self._indexer_id},
-            {"$set": {"cursor": cursor.order_key}},
+            {"$set": {"cursor": cursor_utils.to_json(cursor)}},
             upsert=True,
             session=session,
         )

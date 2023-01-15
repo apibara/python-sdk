@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from argparse import ArgumentParser
 from typing import List, NamedTuple
@@ -14,6 +15,12 @@ from apibara.starknet.proto.starknet_pb2 import Block
 # from starknet_py.contract import (FunctionCallSerializer,
 #                                   identifier_manager_from_abi)
 
+# Print apibara logs
+root_logger = logging.getLogger("apibara")
+root_logger.setLevel(
+    logging.DEBUG
+)  # change to `logging.INFO` to print less information
+root_logger.addHandler(logging.StreamHandler())
 
 briqs_address = felt.from_hex(
     "0x01435498bf393da86b4733b9264a86b58a42b31f8d8b8ba309593e5c17847672"

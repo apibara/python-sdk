@@ -11,6 +11,9 @@ class Filter:
     def encode(self) -> bytes:
         return self._inner.SerializeToString()
 
+    def parse(self, raw: bytes):
+        self._inner.ParseFromString(raw)
+
     def with_header(self) -> "Filter":
         """
         Include header in the returned data.

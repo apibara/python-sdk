@@ -7,7 +7,7 @@ class StarkNetIndexer(Indexer[Filter, Block]):
     def encode_filter(self, filter: Filter) -> bytes:
         return filter.encode()
 
-    def parse_data(self, raw: bytes) -> Block:
+    def decode_data(self, raw: bytes) -> Block:
         block = Block()
         block.ParseFromString(raw)
         return block

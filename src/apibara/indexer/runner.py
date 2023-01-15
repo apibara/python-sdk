@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Generic, Optional, TypeVar
 from urllib.request import DataHandler
@@ -10,6 +11,8 @@ from apibara.indexer.indexer import Indexer
 from apibara.indexer.info import Info, UserContext
 from apibara.indexer.storage import Filter, IndexerStorage
 from apibara.protocol import StreamService
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -59,6 +62,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         """Run the indexer until stopped."""
         self._check_config()
         self._setup_storage(indexer)
+        self._maybe_reset_state()
         await self._do_run(indexer, ctx)
 
     def _check_config(self):
@@ -77,56 +81,67 @@ class IndexerRunner(Generic[UserContext, Filter]):
             self._config.storage_url, self._indexer_id
         )
 
-    async def _do_run(self, indexer: Indexer, ctx: Optional[UserContext] = None):
-        channel = self._channel()
-        retry_count = 0
+    def _maybe_reset_state(self):
+        if self._reset_state:
+            logger.debug("reset state")
+            self._indexer_storage.drop_database()
 
-        # TODO: maybe reset state
+    async def _do_run(self, indexer: Indexer, ctx: Optional[UserContext] = None):
+        self._retry_count = 0
+
+        logger.debug("starting indexer")
         while True:
             try:
-                (client, stream) = StreamService(channel).stream_data()
-
-                # send initial config
-                # TODO: load it from storage if already exists
-                initial_config = indexer.initial_configuration()
-                await client.configure(
-                    filter=initial_config.filter.encode(),
-                    finality=initial_config.finality,
-                    cursor=initial_config.starting_cursor,
-                    batch_size=1,
-                )
-
-                async for message in stream:
-                    retry_count = 0
-                    if message.data is not None:
-                        assert (
-                            len(message.data.data) <= 1
-                        ), "indexer runner requires batch_size == 1"
-
-                        for batch in message.data.data:
-                            with self._indexer_storage.create_storage_for_data(
-                                message.data.end_cursor
-                            ) as storage:
-                                decoded_data = indexer.parse_data(batch)
-                                info = Info(context=ctx, storage=storage)
-                                await indexer.handle_data(info, decoded_data)
-                                # TODO: check if user updated filter
-
-                    elif message.invalidate is not None:
-                        with self._indexer_storage.create_storage_for_invalidate(
-                            message.invalidate.cursor
-                        ) as storage:
-                            info = Info(context=ctx, storage=storage)
-                            await indexer.handle_invalidate(
-                                info, message.invalidate.cursor
-                            )
-
+                await self._connect_and_stream(indexer, ctx)
             except Exception as exc:
-                retry_count += 1
-                reconnect = await indexer.handle_reconnect(exc, retry_count)
+                logger.debug("indexer exception %A", exc)
+                self._retry_count += 1
+                reconnect = await indexer.handle_reconnect(exc, self._retry_count)
 
                 if not reconnect.reconnect:
-                    raise exc
+                    raise
+
+    async def _connect_and_stream(self, indexer: Indexer, ctx: Optional[UserContext]):
+        channel = self._channel()
+        (client, stream) = StreamService(channel).stream_data()
+
+        config = indexer.initial_configuration()
+        self._indexer_storage.update_with_stored_configuration(config)
+
+        logger.debug("indexer configuration read")
+
+        await client.configure(
+            filter=config.filter.encode(),
+            finality=config.finality,
+            cursor=config.starting_cursor,
+            batch_size=1,
+        )
+
+        logger.debug("indexer configuration sent")
+
+        async for message in stream:
+            logger.debug("received message")
+            self._retry_count = 0
+            if message.data is not None:
+                assert (
+                    len(message.data.data) <= 1
+                ), "indexer runner requires batch_size == 1"
+
+                for batch in message.data.data:
+                    with self._indexer_storage.create_storage_for_data(
+                        message.data.end_cursor
+                    ) as storage:
+                        decoded_data = indexer.decode_data(batch)
+                        info = Info(context=ctx, storage=storage)
+                        await indexer.handle_data(info, decoded_data)
+                        # TODO: check if user updated filter
+
+            elif message.invalidate is not None:
+                with self._indexer_storage.create_storage_for_invalidate(
+                    message.invalidate.cursor
+                ) as storage:
+                    info = Info(context=ctx, storage=storage)
+                    await indexer.handle_invalidate(info, message.invalidate.cursor)
 
     def _channel(self):
         if self._config.stream_ssl:
