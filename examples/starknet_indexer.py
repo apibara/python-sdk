@@ -6,26 +6,20 @@ from typing import List, NamedTuple
 
 from apibara.indexer import IndexerRunner, IndexerRunnerConfiguration, Info
 from apibara.indexer.indexer import IndexerConfiguration
-from apibara.protocol.proto.stream_pb2 import (DATA_STATUS_FINALIZED, Cursor,
-                                               DataFinality)
+from apibara.protocol.proto.stream_pb2 import Cursor, DataFinality
 from apibara.starknet import EventFilter, Filter, StarkNetIndexer, felt
 from apibara.starknet.cursor import starknet_cursor
 from apibara.starknet.proto.starknet_pb2 import Block
 
-# from starknet_py.contract import (FunctionCallSerializer,
-#                                   identifier_manager_from_abi)
-
 # Print apibara logs
 root_logger = logging.getLogger("apibara")
-root_logger.setLevel(
-    logging.DEBUG
-)  # change to `logging.INFO` to print less information
+# change to `logging.INFO` to print less information
+root_logger.setLevel(logging.DEBUG)  
 root_logger.addHandler(logging.StreamHandler())
 
 briqs_address = felt.from_hex(
     "0x01435498bf393da86b4733b9264a86b58a42b31f8d8b8ba309593e5c17847672"
 )
-
 
 # `Transfer` selector.
 # You can get this value either with starknet.py's `ContractFunction.get_selector`
@@ -71,6 +65,7 @@ async def main(argv):
         reset_state=args.reset,
     )
 
+    # ctx can be accessed by the callbacks in `info`.
     await runner.run(BriqIndexer(), ctx={"network": "starknet-mainnet"})
 
 
