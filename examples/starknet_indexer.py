@@ -14,7 +14,7 @@ from apibara.starknet.proto.starknet_pb2 import Block
 # Print apibara logs
 root_logger = logging.getLogger("apibara")
 # change to `logging.INFO` to print less information
-root_logger.setLevel(logging.DEBUG)  
+root_logger.setLevel(logging.DEBUG)
 root_logger.addHandler(logging.StreamHandler())
 
 briqs_address = felt.from_hex(
