@@ -2,6 +2,23 @@ Changelog
 =========
 
 
+Apibara Python SDK 0.6.0 (2023-01-16)
+--------------------------------------
+
+Added
+^^^^^
+
+ - New `Indexer` and `StarkNetIndexer` interfaces for developers to implement indexers.
+ - Low-level `StreamService`, `StreamClient`, and `StreamIter` to communicate with the
+ streams directly.
+ - A `apibara.starknet` module with StarkNet specific filters and data.
+
+Changed
+^^^^^^^
+
+ - `IndexerRunner` is now responsible for applying an `Indexer` over a stream.
+
+
 
 Apibara Python SDK 0.5.16 (2022-12-05)
 --------------------------------------
