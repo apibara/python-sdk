@@ -49,6 +49,9 @@ class Indexer(Generic[Filter, Data], metaclass=ABCMeta):
     async def handle_data(self, info: Info[UserContext, Filter], data: Data):
         raise NotImplementedError()
 
+    async def handle_pending_data(self, info: Info[UserContext, Filter], data: Data):
+        raise NotImplementedError()
+
     async def handle_invalidate(self, info: Info[UserContext, Filter], cursor: Cursor):
         return
 
