@@ -1,8 +1,7 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Awaitable, Callable, Generic, Optional, TypeVar
-from urllib.request import DataHandler
+from typing import Any, Generic, List, Optional, Tuple
 
 from grpc import ssl_channel_credentials
 from grpc.aio import insecure_channel, secure_channel
@@ -43,6 +42,8 @@ class IndexerRunner(Generic[UserContext, Filter]):
         flag to restart the indexer from the beginning.
     config:
         options to set the input stream and connection string.
+    client_options:
+        list of options passed to the gRPC channel.
     """
 
     def __init__(
@@ -50,6 +51,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         *,
         reset_state: bool = False,
         config: Optional[IndexerRunnerConfiguration] = None,
+        client_options: Optional[List[Tuple[str, Any]]] = None,
     ) -> None:
         if config is None:
             config = IndexerRunnerConfiguration()
@@ -57,6 +59,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         self._config = config
         self._indexer_id = None
         self._indexer_storage = None
+        self._client_options = None
 
     async def run(self, indexer: Indexer, *, ctx: Optional[UserContext] = None):
         """Run the indexer until stopped."""
@@ -145,5 +148,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
     def _channel(self):
         if self._config.stream_ssl:
-            return secure_channel(self._config.stream_url, ssl_channel_credentials())
-        return insecure_channel(self._config.stream_url)
+            return secure_channel(
+                self._config.stream_url,
+                ssl_channel_credentials(),
+                options=self._client_options,
+            )
+        return insecure_channel(self._config.stream_url, options=self._client_options)
