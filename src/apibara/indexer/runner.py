@@ -10,6 +10,7 @@ from apibara.indexer.indexer import Indexer
 from apibara.indexer.info import Info, UserContext
 from apibara.indexer.storage import Filter, IndexerStorage
 from apibara.protocol import StreamService
+from apibara.protocol.proto.stream_pb2 import DataFinality
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +110,10 @@ class IndexerRunner(Generic[UserContext, Filter]):
         (client, stream) = StreamService(channel).stream_data()
 
         config = indexer.initial_configuration()
-        self._indexer_storage.update_with_stored_configuration(config)
+        has_stored = self._indexer_storage.update_with_stored_configuration(config)
+        if has_stored:
+            # invalidate old pending data, if any
+            self._indexer_storage.invalidate(config.starting_cursor)
 
         logger.debug("indexer configuration read")
 
@@ -122,6 +126,8 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
         logger.debug("indexer configuration sent")
 
+        previous_end_cursor = None
+        pending_received = False
         async for message in stream:
             logger.debug("received message")
             self._retry_count = 0
@@ -130,14 +136,27 @@ class IndexerRunner(Generic[UserContext, Filter]):
                     len(message.data.data) <= 1
                 ), "indexer runner requires batch_size == 1"
 
+                # invalidate any pending data, if any
+                if pending_received and previous_end_cursor is not None:
+                    self._indexer_storage.invalidate(previous_end_cursor)
+
+                is_pending = message.data.finality == DataFinality.DATA_STATUS_PENDING
+                pending_received = is_pending
+
                 for batch in message.data.data:
                     with self._indexer_storage.create_storage_for_data(
                         message.data.end_cursor
                     ) as storage:
                         decoded_data = indexer.decode_data(batch)
                         info = Info(context=ctx, storage=storage)
-                        await indexer.handle_data(info, decoded_data)
+                        if is_pending:
+                            await indexer.handle_pending_data(info, decoded_data)
+                        else:
+                            await indexer.handle_data(info, decoded_data)
                         # TODO: check if user updated filter
+
+                if not is_pending:
+                    previous_end_cursor = message.data.end_cursor
 
             elif message.invalidate is not None:
                 with self._indexer_storage.create_storage_for_invalidate(
@@ -145,6 +164,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 ) as storage:
                     info = Info(context=ctx, storage=storage)
                     await indexer.handle_invalidate(info, message.invalidate.cursor)
+                previous_end_cursor = message.invalidate.cursor
 
     def _channel(self):
         if self._config.stream_ssl:

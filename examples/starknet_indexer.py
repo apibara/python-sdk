@@ -13,8 +13,8 @@ from apibara.starknet.proto.starknet_pb2 import Block
 
 # Print apibara logs
 root_logger = logging.getLogger("apibara")
-# change to `logging.INFO` to print less information
-root_logger.setLevel(logging.DEBUG)
+# change to `logging.DEBUG` to print more information
+root_logger.setLevel(logging.INFO)
 root_logger.addHandler(logging.StreamHandler())
 
 briqs_address = felt.from_hex(
@@ -40,7 +40,7 @@ class BriqIndexer(StarkNetIndexer):
                 EventFilter().with_from_address(briqs_address).with_keys([transfer_key])
             ),
             starting_cursor=starknet_cursor(10_000),
-            finality=DataFinality.DATA_STATUS_FINALIZED,
+            finality=DataFinality.DATA_STATUS_PENDING,
         )
 
     async def handle_data(self, info: Info, data: Block):
@@ -48,8 +48,13 @@ class BriqIndexer(StarkNetIndexer):
         for event_with_tx in data.events:
             print(event_with_tx.event)
 
-    async def handle_invalidate(self, _info: Info, _cursor: Cursor):
-        raise ValueError("data must be finalized")
+    async def handle_pending_data(self, info: Info, data: Block):
+        print("Pending")
+        for event_with_tx in data.events:
+            print(event_with_tx.event)
+
+    async def handle_invalidate(self, _info: Info, cursor: Cursor):
+        print(f"Chain reorganization {cursor}")
 
 
 async def main(argv):

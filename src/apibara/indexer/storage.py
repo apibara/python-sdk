@@ -88,7 +88,7 @@ class IndexerStorage(Generic[Filter]):
         stored = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
         if stored is None:
             self._initialize_configuration(initial)
-            return initial
+            return False
 
         encoded_filter = stored.get("filter")
         if encoded_filter is None:
@@ -98,6 +98,8 @@ class IndexerStorage(Generic[Filter]):
         cursor = stored.get("cursor")
         if cursor is not None:
             initial.starting_cursor = cursor_utils.from_json(cursor)
+
+        return True
 
     def _update_filter(self, filter: Filter, session: ClientSession):
         """Set the indexer filter, overriding the previous filter."""
