@@ -60,7 +60,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         self._config = config
         self._indexer_id = None
         self._indexer_storage = None
-        self._client_options = None
+        self._client_options = client_options
 
     async def run(self, indexer: Indexer, *, ctx: Optional[UserContext] = None):
         """Run the indexer until stopped."""
