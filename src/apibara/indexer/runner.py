@@ -143,12 +143,14 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 is_pending = message.data.finality == DataFinality.DATA_STATUS_PENDING
                 pending_received = is_pending
 
+                end_cursor = message.data.end_cursor
+                cursor = message.data.cursor
                 for batch in message.data.data:
                     with self._indexer_storage.create_storage_for_data(
                         message.data.end_cursor
                     ) as storage:
                         decoded_data = indexer.decode_data(batch)
-                        info = Info(context=ctx, storage=storage)
+                        info = Info(context=ctx, storage=storage, cursor=cursor, end_cursor=cursor)
                         if is_pending:
                             await indexer.handle_pending_data(info, decoded_data)
                         else:
@@ -162,8 +164,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 with self._indexer_storage.create_storage_for_invalidate(
                     message.invalidate.cursor
                 ) as storage:
-                    info = Info(context=ctx, storage=storage)
-                    await indexer.handle_invalidate(info, message.invalidate.cursor)
+                    cursor = message.invalidate.cursor
+                    info = Info(context=ctx, storage=storage, cursor=cursor, end_cursor=cursor)
+                    await indexer.handle_invalidate(info, cursor)
                 previous_end_cursor = message.invalidate.cursor
 
     def _channel(self):

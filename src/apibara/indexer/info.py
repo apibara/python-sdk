@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Generic, Optional, TypeVar
 
 from apibara.indexer.storage import Filter, Storage
+from apibara.protocol.proto.stream_pb2 import Cursor
 
 UserContext = TypeVar("UserContext")
 
@@ -20,6 +21,8 @@ class Info(Generic[UserContext, Filter]):
 
     context: UserContext
     storage: Storage
+    cursor: Cursor
+    end_cursor: Cursor
 
     _new_filter: Optional[Filter] = None
 

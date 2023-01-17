@@ -45,6 +45,7 @@ class BriqIndexer(StarkNetIndexer):
 
     async def handle_data(self, info: Info, data: Block):
         # Handle one block of data
+        print(info.cursor, info.end_cursor)
         for event_with_tx in data.events:
             print(event_with_tx.event)
 
