@@ -2,6 +2,16 @@ Changelog
 =========
 
 
+Apibara Python SDK 0.6.1 (2023-01-18)
+--------------------------------------
+
+Added
+^^^^^
+
+ - Header filter has now a `weak` flag to include header data only if
+ any other filter matches. The flag can be set with `Filter().with_header(weak=True)`.
+
+
 Apibara Python SDK 0.6.0 (2023-01-16)
 --------------------------------------
 
