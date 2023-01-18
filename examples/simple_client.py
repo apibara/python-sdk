@@ -36,7 +36,7 @@ async def main():
 
     filter = (
         Filter()
-        .with_header()
+        .with_header(weak=True)
         .add_event(EventFilter().with_from_address(address).with_keys([transfer_key]))
         .with_state_update(
             StateUpdateFilter().add_storage_diff(

@@ -9,6 +9,35 @@ Apibara Python SDK
 
 Build web3-powered applications in Python. 
 
+Development
+-----------
+
+Install all dependencies with:
+
+```
+poetry install
+```
+
+Run tests with:
+
+```
+poetry run pytest tests
+```
+
+Format code with:
+
+```
+poetry run black src examples test
+poetry run isort src examples test
+```
+
+To update the protobuf definitions:
+
+```
+protoc -I=protos/starknet/ \
+    --python_out=src/apibara/starknet/proto/ \
+    --pyi_out=src/apibara/starknet/proto protos/starknet/*
+```
 
 License
 -------

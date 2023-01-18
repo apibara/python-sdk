@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import apibara.starknet.proto.filter_pb2 as proto
 from apibara.starknet.proto.types_pb2 import FieldElement
@@ -14,11 +14,16 @@ class Filter:
     def parse(self, raw: bytes):
         self._inner.ParseFromString(raw)
 
-    def with_header(self) -> "Filter":
+    def with_header(self, weak: Optional[bool] = None) -> "Filter":
         """
         Include header in the returned data.
+
+        Parameters
+        ----------
+        weak : bool, optional
+            if True, only include header if any other filter matches.
         """
-        self._inner.header.CopyFrom(proto.HeaderFilter())
+        self._inner.header.CopyFrom(proto.HeaderFilter(weak=weak))
         return self
 
     def add_transaction(self, tx: "TransactionFilter") -> "Filter":
