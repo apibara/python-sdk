@@ -27,6 +27,7 @@ Run tests with:
 Format code with:
 
 .. code::
+
     poetry run black src examples test
     poetry run isort src examples test
 
