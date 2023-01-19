@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+Apibara Python SDK 0.6.2 (2023-01-19)
+--------------------------------------
+
+Added
+^^^^^
+
+ - `Filter.to_proto` method that returns the filter's protobuf object.
+
+
 Apibara Python SDK 0.6.1 (2023-01-18)
 --------------------------------------
 
