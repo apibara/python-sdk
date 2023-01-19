@@ -1,5 +1,18 @@
 # This script shows how to save a stream to a file.
 # This is useful to generate data for your tests.
+#
+# Example:
+#
+# Generate filter:
+#   python examples/save_stream.py example-filter > /tmp/filter.json
+#
+# Generate some block data
+#   python examples/save_stream.py stream
+#     /tmp/filter.json
+#     mainnet.starknet.a5a.ch:443
+#     --start-block 17990
+#     --end-block 18000
+#     --batch-size=1
 
 import asyncio
 import sys
