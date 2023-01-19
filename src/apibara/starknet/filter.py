@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import apibara.starknet.proto.filter_pb2 as proto
 from apibara.starknet.proto.types_pb2 import FieldElement
@@ -10,6 +10,9 @@ class Filter:
 
     def encode(self) -> bytes:
         return self._inner.SerializeToString()
+
+    def to_proto(self) -> proto.Filter:
+        return self._inner
 
     def parse(self, raw: bytes):
         self._inner.ParseFromString(raw)
