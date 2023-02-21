@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+Apibara Python SDK 0.6.3 (2023-02-21)
+--------------------------------------
+
+Fixed
+^^^^^
+
+ - Include timeout waiting for messages.
+
+
 Apibara Python SDK 0.6.2 (2023-01-19)
 --------------------------------------
 

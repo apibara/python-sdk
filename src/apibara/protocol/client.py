@@ -1,3 +1,4 @@
+import asyncio
 from asyncio.queues import Queue
 from typing import AsyncIterable, Iterable, Optional, Tuple, Union
 
@@ -8,6 +9,9 @@ from apibara.protocol.proto.stream_pb2 import (Cursor, DataFinality,
                                                StreamDataRequest,
                                                StreamDataResponse)
 from apibara.protocol.proto.stream_pb2_grpc import StreamStub
+
+
+DEFAULT_TIMEOUT = 45.0
 
 
 class StreamService:
@@ -24,11 +28,20 @@ class StreamService:
         self._channel = channel
         self._stub = StreamStub(self._channel)
 
-    def stream_data(self) -> Tuple["StreamClient", "StreamIter"]:
+    def stream_data(self, timeout=None) -> Tuple["StreamClient", "StreamIter"]:
+        """Start streaming data from the server.
+        
+        Arguments
+        ---------
+        timeout: float
+            timeout in seconds for waiting messages from the server.
+        """
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
         ctx = _Context()
         client = StreamClient(ctx)
         iter = self._stub.StreamData(client.client_stream)
-        stream = StreamIter(ctx, iter)
+        stream = StreamIter(ctx, iter, timeout)
         return client, stream
 
 
@@ -57,9 +70,10 @@ class StreamClient:
 
 
 class StreamIter:
-    def __init__(self, ctx: "_Context", inner: StreamStreamMultiCallable) -> None:
+    def __init__(self, ctx: "_Context", inner: StreamStreamMultiCallable, timeout: float) -> None:
         self._ctx = ctx
         self._inner = inner
+        self._timeout = timeout
         self._iter = None
 
     def __aiter__(self) -> AsyncIterable[StreamDataResponse]:
@@ -68,7 +82,7 @@ class StreamIter:
 
     async def __anext__(self):
         while True:
-            value = await self._iter.__anext__()
+            value = await asyncio.wait_for(self._iter.__anext__(), timeout=self._timeout)
             if value.stream_id == self._ctx.stream_id:
                 return value
 
