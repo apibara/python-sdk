@@ -4,7 +4,7 @@ from decimal import Decimal
 from grpc import ssl_channel_credentials
 from grpc.aio import secure_channel
 
-from apibara.protocol import StreamService
+from apibara.protocol import StreamService, StreamAddress
 from apibara.protocol.proto.stream_pb2 import DataFinality
 from apibara.starknet import Block, EventFilter, Filter, felt
 from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter
@@ -30,7 +30,7 @@ async def main():
         "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
     )
 
-    channel = secure_channel("mainnet.starknet.a5a.ch", ssl_channel_credentials())
+    channel = secure_channel(StreamAddress.StarkNet.Mainnet, ssl_channel_credentials())
 
     (client, stream) = StreamService(channel).stream_data()
 

@@ -8,7 +8,8 @@ Apibara Python SDK 0.6.3 (2023-02-21)
 Added
 ^^^^^
 
- - Set recommended grpc client options by default
+ - Set recommended grpc client options by default.
+ - Add `StreamAddress` class with a list of well-known Apibara streams.
 
 Fixed
 ^^^^^
