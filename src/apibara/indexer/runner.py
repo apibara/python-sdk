@@ -15,6 +15,13 @@ from apibara.protocol.proto.stream_pb2 import DataFinality
 logger = logging.getLogger(__name__)
 
 
+MAX_MESSAGE_LENGTH = 100 * 1024 * 1024
+
+DEFAULT_CLIENT_OPTIONS = [
+    ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+    ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH),
+]
+
 @dataclass
 class IndexerRunnerConfiguration:
     """IndexerRunner configuration.
@@ -56,6 +63,8 @@ class IndexerRunner(Generic[UserContext, Filter]):
     ) -> None:
         if config is None:
             config = IndexerRunnerConfiguration()
+        if client_options is None:
+            client_options = DEFAULT_CLIENT_OPTIONS
         self._reset_state = reset_state
         self._config = config
         self._indexer_id = None
