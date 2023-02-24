@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+Apibara Python SDK 0.6.4 (2023-02-24)
+--------------------------------------
+
+Added
+^^^^^
+
+ - Add support for authenticating with the server
+
+
 Apibara Python SDK 0.6.3 (2023-02-21)
 --------------------------------------
 
@@ -9,7 +18,7 @@ Added
 ^^^^^
 
  - Set recommended grpc client options by default.
- - Add `StreamAddress` class with a list of well-known Apibara streams.
+ - Add :code:`StreamAddress` class with a list of well-known Apibara streams.
 
 Fixed
 ^^^^^
@@ -23,7 +32,7 @@ Apibara Python SDK 0.6.2 (2023-01-19)
 Added
 ^^^^^
 
- - `Filter.to_proto` method that returns the filter's protobuf object.
+ - :code:`Filter.to_proto` method that returns the filter's protobuf object.
 
 
 Apibara Python SDK 0.6.1 (2023-01-18)
@@ -32,8 +41,8 @@ Apibara Python SDK 0.6.1 (2023-01-18)
 Added
 ^^^^^
 
- - Header filter has now a `weak` flag to include header data only if
- any other filter matches. The flag can be set with `Filter().with_header(weak=True)`.
+ - Header filter has now a :code:`weak` flag to include header data only if
+ any other filter matches. The flag can be set with :code:`Filter().with_header(weak=True)`.
 
 
 Apibara Python SDK 0.6.0 (2023-01-16)
@@ -42,16 +51,15 @@ Apibara Python SDK 0.6.0 (2023-01-16)
 Added
 ^^^^^
 
- - New `Indexer` and `StarkNetIndexer` interfaces for developers to implement indexers.
- - Low-level `StreamService`, `StreamClient`, and `StreamIter` to communicate with the
+ - New :code:`Indexer` and :code:`StarkNetIndexer` interfaces for developers to implement indexers.
+ - Low-level :code:`StreamService`, :code:`StreamClient`, and :code:`StreamIter` to communicate with the
  streams directly.
- - A `apibara.starknet` module with StarkNet specific filters and data.
+ - A :code:`apibara.starknet` module with StarkNet specific filters and data.
 
 Changed
 ^^^^^^^
 
- - `IndexerRunner` is now responsible for applying an `Indexer` over a stream.
-
+ - :code:`IndexerRunner` is now responsible for applying an `Indexer` over a stream.
 
 
 Apibara Python SDK 0.5.16 (2022-12-05)
