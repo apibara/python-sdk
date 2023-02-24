@@ -19,16 +19,15 @@ import sys
 from argparse import ArgumentParser
 from decimal import Decimal
 
+from google.protobuf.json_format import MessageToJson, Parse
 from grpc import ssl_channel_credentials
 from grpc.aio import secure_channel
-from google.protobuf.json_format import MessageToJson, Parse
 
 from apibara.protocol import StreamService
 from apibara.protocol.proto.stream_pb2 import DataFinality
-from apibara.starknet import EventFilter, Filter, felt, Block
+from apibara.starknet import Block, EventFilter, Filter, felt
 from apibara.starknet.cursor import starknet_cursor
 from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter
-
 # Notice that here we import the low-level, proto definition
 # of filter.
 from apibara.starknet.proto.filter_pb2 import Filter as ProtoFilter
