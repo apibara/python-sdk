@@ -18,9 +18,10 @@ logger = logging.getLogger(__name__)
 MAX_MESSAGE_LENGTH = 100 * 1024 * 1024
 
 DEFAULT_CLIENT_OPTIONS = [
-    ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
-    ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH),
+    ("grpc.max_send_message_length", MAX_MESSAGE_LENGTH),
+    ("grpc.max_receive_message_length", MAX_MESSAGE_LENGTH),
 ]
+
 
 @dataclass
 class IndexerRunnerConfiguration:

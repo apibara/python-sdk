@@ -1,10 +1,12 @@
 import asyncio
+import os
 from decimal import Decimal
 
 from grpc import ssl_channel_credentials
 from grpc.aio import secure_channel
 
-from apibara.protocol import StreamService, StreamAddress
+from apibara.protocol import (StreamAddress, StreamService,
+                              credentials_with_auth_token)
 from apibara.protocol.proto.stream_pb2 import DataFinality
 from apibara.starknet import Block, EventFilter, Filter, felt
 from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter
@@ -12,6 +14,8 @@ from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter
 ETH_DECIMALS = 18
 
 _DEN = Decimal(10**ETH_DECIMALS)
+
+AUTH_TOKEN = os.environ.get("AUTH_TOKEN")
 
 
 def to_decimal(amount: int) -> Decimal:
@@ -30,7 +34,10 @@ async def main():
         "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
     )
 
-    channel = secure_channel(StreamAddress.StarkNet.Mainnet, ssl_channel_credentials())
+    channel = secure_channel(
+        StreamAddress.StarkNet.Mainnet,
+        credentials_with_auth_token(AUTH_TOKEN, ssl_channel_credentials()),
+    )
 
     (client, stream) = StreamService(channel).stream_data()
 
