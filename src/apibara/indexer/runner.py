@@ -9,7 +9,7 @@ from grpc.aio import insecure_channel, secure_channel
 from apibara.indexer.indexer import Indexer
 from apibara.indexer.info import Info, UserContext
 from apibara.indexer.storage import Filter, IndexerStorage
-from apibara.protocol import StreamService
+from apibara.protocol import StreamService, credentials_with_auth_token
 from apibara.protocol.proto.stream_pb2 import DataFinality
 
 logger = logging.getLogger(__name__)
@@ -33,12 +33,15 @@ class IndexerRunnerConfiguration:
         url of the Apibara stream.
     stream_ssl:
         flag to connect using SSL.
+    token:
+        server authorization token.
     storage_url:
         MongoDB connection string, used to store the indexer  data and state.
     """
 
     stream_url: Optional[str] = None
     stream_ssl: bool = True
+    token: Optional[str] = None
     storage_url: Optional[str] = None
 
 
@@ -190,7 +193,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
         if self._config.stream_ssl:
             return secure_channel(
                 self._config.stream_url,
-                ssl_channel_credentials(),
+                credentials_with_auth_token(
+                    self._config.token, ssl_channel_credentials()
+                ),
                 options=self._client_options,
             )
         return insecure_channel(self._config.stream_url, options=self._client_options)
