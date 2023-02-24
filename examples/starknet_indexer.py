@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import sys
 from argparse import ArgumentParser
 from typing import List, NamedTuple
@@ -10,6 +11,8 @@ from apibara.protocol.proto.stream_pb2 import Cursor, DataFinality
 from apibara.starknet import EventFilter, Filter, StarkNetIndexer, felt
 from apibara.starknet.cursor import starknet_cursor
 from apibara.starknet.proto.starknet_pb2 import Block
+
+AUTH_TOKEN = os.environ.get("AUTH_TOKEN")
 
 # Print apibara logs
 root_logger = logging.getLogger("apibara")
@@ -67,6 +70,7 @@ async def main(argv):
         config=IndexerRunnerConfiguration(
             stream_url="mainnet.starknet.a5a.ch:443",
             storage_url="mongodb://apibara:apibara@localhost:27017",
+            token=AUTH_TOKEN,
         ),
         reset_state=args.reset,
     )
