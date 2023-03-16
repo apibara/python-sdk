@@ -29,6 +29,22 @@ class Reconnect:
 
 
 class Indexer(Generic[Filter, Data], metaclass=ABCMeta):
+    def __init__(self):
+        self._new_filter = None
+
+    def update_filter(self, filter: Filter):
+        """Updates the indexer filter by merging the current filter with the new one"""
+        if self._new_filter is None:
+            self._new_filter = filter
+        else:
+            self._new_filter = self._new_filter.merge(filter)
+
+    def _get_and_reset_filter(self) -> Optional[Filter]:
+        if self._new_filter is None:
+            return None
+        self._new_filter, filter = None, self._new_filter
+        return filter
+
     @abstractmethod
     def indexer_id(self) -> str:
         raise NotImplementedError()

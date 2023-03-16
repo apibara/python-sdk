@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Apibara Python SDK 0.6.5 (2023-03-16)
+--------------------------------------
+
+Added
+^^^^^
+
+ - Add :code:`update_filter` method to :code:`Indexer` to dynamically update the stream filter.
+
 
 Apibara Python SDK 0.6.4 (2023-02-24)
 --------------------------------------

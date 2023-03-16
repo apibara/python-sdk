@@ -144,6 +144,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         async for message in stream:
             logger.debug("received message")
             self._retry_count = 0
+
             if message.data is not None:
                 assert (
                     len(message.data.data) <= 1
@@ -158,22 +159,38 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
                 end_cursor = message.data.end_cursor
                 cursor = message.data.cursor
-                for batch in message.data.data:
-                    with self._indexer_storage.create_storage_for_data(
-                        message.data.end_cursor
-                    ) as storage:
+                with self._indexer_storage.create_storage_for_data(
+                    message.data.end_cursor
+                ) as storage:
+                    additional_filter = None
+                    for batch in message.data.data:
                         decoded_data = indexer.decode_data(batch)
                         info = Info(
                             context=ctx,
                             storage=storage,
                             cursor=cursor,
-                            end_cursor=cursor,
+                            end_cursor=end_cursor,
                         )
                         if is_pending:
                             await indexer.handle_pending_data(info, decoded_data)
                         else:
                             await indexer.handle_data(info, decoded_data)
-                        # TODO: check if user updated filter
+                            additional_filter = indexer._get_and_reset_filter()
+
+                    if additional_filter is not None:
+                        config.filter = config.filter.merge(additional_filter)
+                        self._indexer_storage._update_filter(
+                            config.filter, session=storage._session
+                        )
+                        # user updated the filter.
+                        # TODO: should probably rescan the current block for filters
+                        # that match the new filter.
+                        await client.configure(
+                            filter=config.filter.encode(),
+                            finality=config.finality,
+                            cursor=end_cursor,
+                            batch_size=1,
+                        )
 
                 if not is_pending:
                     previous_end_cursor = message.data.end_cursor

@@ -1,17 +1,27 @@
 import asyncio
+import logging
+import sys
+from argparse import ArgumentParser
 from decimal import Decimal
 from typing import List
 
 from grpc import ssl_channel_credentials
 from grpc.aio import secure_channel
 
-from apibara.protocol import StreamClient, StreamService
+from apibara.indexer import IndexerRunner, IndexerRunnerConfiguration, Info
+from apibara.indexer.indexer import IndexerConfiguration
 from apibara.protocol.proto.stream_pb2 import Cursor, Data, DataFinality
-from apibara.starknet import Block, EventFilter, Filter, felt
+from apibara.starknet import Block, EventFilter, Filter, StarkNetIndexer, felt
 from apibara.starknet.cursor import starknet_cursor
 from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter
 from apibara.starknet.proto.starknet_pb2 import Event, Transaction
 from apibara.starknet.proto.types_pb2 import FieldElement
+
+# Print apibara logs
+root_logger = logging.getLogger("apibara")
+# change to `logging.DEBUG` to print more information
+root_logger.setLevel(logging.INFO)
+root_logger.addHandler(logging.StreamHandler())
 
 ETH_DECIMALS = 18
 
@@ -48,47 +58,37 @@ def from_uint256(low: FieldElement, high: FieldElement) -> int:
     return felt.to_int(low) + (felt.to_int(high) << 128)
 
 
-class EventHandler:
-    def __init__(self, client):
-        self.client = client
-        self.filters = [
-            EventFilter()
-            .with_from_address(FACTORY_ADDRESS)
-            .with_keys([PAIR_CREATED_KEY])
-        ]
+class DexIndexer(StarkNetIndexer):
+    def indexer_id(self) -> str:
+        return "dynamic-filter-example"
 
-        self.rescan_cursor = None
-
-    async def reconfigure(self, cursor=None):
-        if cursor is None:
-            cursor = starknet_cursor(5980)
-        await self.client.configure(
-            filter=build_filter(self.filters).encode(),
+    def initial_configuration(self) -> Filter:
+        # Return initial configuration of the indexer.
+        return IndexerConfiguration(
+            filter=Filter()
+            .with_header(weak=True)
+            .add_event(
+                EventFilter()
+                .with_from_address(FACTORY_ADDRESS)
+                .with_keys([PAIR_CREATED_KEY])
+            ),
+            starting_cursor=starknet_cursor(5980),
             finality=DataFinality.DATA_STATUS_ACCEPTED,
-            cursor=cursor,
-            batch_size=1,
         )
 
-    async def handle_batch(self, batch: Data):
-        cursor = batch.cursor
-        if self.rescan_cursor is not None:
-            # reset to include all filters
-            if cursor.order_key > self.rescan_cursor.order_key:
-                await self.reconfigure(cursor)
-                self.rescan_cursor = None
+    async def handle_data(self, info: Info, block: Block):
+        print(
+            f"Block {block.header.block_number}/0x{felt.to_hex(block.header.block_hash)}"
+        )
 
-        block = Block()
-        for batch in batch.data:
-            block.ParseFromString(batch)
+        for event_with_tx in block.events:
+            event = event_with_tx.event
+            tx = event_with_tx.transaction
 
-            for event_with_tx in block.events:
-                event = event_with_tx.event
-                tx = event_with_tx.transaction
-
-                if event.keys[0] == PAIR_CREATED_KEY:
-                    await self.handle_pair_created(cursor, tx, event)
-                elif event.keys[0] == SWAP_KEY:
-                    await self.handle_swap(cursor, tx, event)
+            if event.keys[0] == PAIR_CREATED_KEY:
+                await self.handle_pair_created(info.cursor, tx, event)
+            elif event.keys[0] == SWAP_KEY:
+                await self.handle_swap(info.cursor, tx, event)
 
     async def handle_pair_created(self, cursor: Cursor, tx: Transaction, event: Event):
         tx_hash = felt.to_hex(tx.meta.hash)
@@ -105,20 +105,13 @@ class EventHandler:
         print(f"    Count: {count}")
         print()
 
-        pair_filter = (
-            EventFilter().with_from_address(event.data[2]).with_keys([SWAP_KEY])
-        )
-
-        # add new pair to the global filters
-        self.filters.append(pair_filter)
-
-        # rescan the current block for events matching the new pair
-        self.rescan_cursor = cursor
-        await self.client.configure(
-            filter=build_filter([pair_filter]).encode(),
-            finality=DataFinality.DATA_STATUS_ACCEPTED,
-            cursor=cursor,
-            batch_size=1,
+        # Add the pair to the tracked pairs.
+        self.update_filter(
+            Filter()
+            .with_header(weak=True)
+            .add_event(
+                EventFilter().with_from_address(event.data[2]).with_keys([SWAP_KEY])
+            )
         )
 
     async def handle_swap(self, cursor: Cursor, tx: Transaction, event: Event):
@@ -135,25 +128,27 @@ class EventHandler:
         print(f"   Tx Hash: {tx_hash}")
         print(f"    Sender: {sender}")
         print(f"      Dest: {dest}")
-        print(f"   Amnt in: {amount_0_in} o {amount_1_in}")
-        print(f"  Amnt out: {amount_0_out} o {amount_1_out}")
+        print(f"   Amnt in: {amount_0_in} x {amount_1_in}")
+        print(f"  Amnt out: {amount_0_out} x {amount_1_out}")
         print()
 
 
-async def main():
+async def main(argv):
+    parser = ArgumentParser()
+    parser.add_argument("--reset", action="store_true")
+    args = parser.parse_args(argv)
 
-    channel = secure_channel("mainnet.starknet.a5a.ch", ssl_channel_credentials())
+    runner = IndexerRunner(
+        config=IndexerRunnerConfiguration(
+            stream_url="mainnet.starknet.a5a.ch:443",
+            storage_url="mongodb://apibara:apibara@localhost:27017",
+        ),
+        reset_state=args.reset,
+    )
 
-    (client, stream) = StreamService(channel).stream_data()
-
-    handler = EventHandler(client)
-
-    await handler.reconfigure()
-
-    async for message in stream:
-        if message.data is not None:
-            await handler.handle_batch(message.data)
+    # ctx can be accessed by the callbacks in `info`.
+    await runner.run(DexIndexer())
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(sys.argv[1:]))

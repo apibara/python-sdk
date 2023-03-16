@@ -17,6 +17,51 @@ class Filter:
     def parse(self, raw: bytes):
         self._inner.ParseFromString(raw)
 
+    def merge(self, other: "Filter") -> "Filter":
+        """
+        Returns a new filter that will generate data for both filters.
+
+        Parameters
+        ----------
+        other : Filter
+            the other filter
+        """
+        new_filter = Filter()
+
+        # decide wether to include headers or not
+        has_header = False
+        has_weak_header = False
+        if self._inner.HasField("header"):
+            has_header = True
+            if self._inner.header.weak:
+                has_weak_header = True
+        if other._inner.HasField("header"):
+            has_header = True
+            if other._inner.header.weak:
+                has_weak_header = True
+        if has_header:
+            new_filter.with_header(weak=has_weak_header)
+
+        # concat all other filters.
+        new_filter._inner.transactions.extend(self._inner.transactions)
+        new_filter._inner.transactions.extend(other._inner.transactions)
+
+        new_filter._inner.events.extend(self._inner.events)
+        new_filter._inner.events.extend(other._inner.events)
+
+        new_filter._inner.messages.extend(self._inner.messages)
+        new_filter._inner.messages.extend(other._inner.messages)
+
+        # merge state update filters
+        if self._inner.HasField("state_update") or other._inner.HasField(
+            "state_update"
+        ):
+            raise RuntimeError(
+                "merging state updates is not supported yet. Please open an issue on github."
+            )
+
+        return new_filter
+
     def with_header(self, weak: Optional[bool] = None) -> "Filter":
         """
         Include header in the returned data.

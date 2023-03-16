@@ -24,7 +24,7 @@ def to_decimal(amount: int) -> Decimal:
 
 async def main():
     address = felt.from_hex(
-        "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+        "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004d00"
     )
 
     # `Transfer` selector.
@@ -55,13 +55,19 @@ async def main():
 
     await client.configure(
         filter=filter,
-        finality=DataFinality.DATA_STATUS_FINALIZED,
+        finality=DataFinality.DATA_STATUS_ACCEPTED,
         batch_size=10,
     )
 
     block = Block()
     async for message in stream:
         if message.data is not None:
+            print(message.data.end_cursor.order_key)
+            print(len(message.data.data))
+            continue
+        else:
+            print(message)
+            continue
             for batch in message.data.data:
                 block.ParseFromString(batch)
 
