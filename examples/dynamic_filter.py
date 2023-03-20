@@ -42,6 +42,10 @@ SWAP_KEY = felt.from_hex(
     "0xe316f0d9d2a3affa97de1d99bb2aac0538e2666d0d8545545ead241ef0ccab"
 )
 
+SYNC_KEY = felt.from_hex(
+    "0xe14a408baf7f453312eec68e9b7d728ec5337fbdf671f917ee8c80f3255232"
+)
+
 
 def to_decimal(amount: int) -> Decimal:
     return Decimal(amount) / _DEN
@@ -52,6 +56,10 @@ def build_filter(events: List[EventFilter]) -> Filter:
     for event in events:
         filter.add_event(event)
     return filter
+
+
+def shorten_addr(addr: str) -> str:
+    return addr[:6] + "..." + addr[-4:]
 
 
 def from_uint256(low: FieldElement, high: FieldElement) -> int:
@@ -89,6 +97,8 @@ class DexIndexer(StarkNetIndexer):
                 await self.handle_pair_created(info.cursor, tx, event)
             elif event.keys[0] == SWAP_KEY:
                 await self.handle_swap(info.cursor, tx, event)
+            elif event.keys[0] == SYNC_KEY:
+                await self.handle_sync(info.cursor, tx, event)
 
     async def handle_pair_created(self, cursor: Cursor, tx: Transaction, event: Event):
         tx_hash = felt.to_hex(tx.meta.hash)
@@ -97,13 +107,7 @@ class DexIndexer(StarkNetIndexer):
         token_1 = felt.to_hex(event.data[1])
         pair = felt.to_hex(event.data[2])
         count = felt.to_int(event.data[3])
-        print("New Pair")
-        print(f"  Tx Hash: {tx_hash}")
-        print(f"     Pair: {token_0}")
-        print(f"  Token 0: {token_1}")
-        print(f"  Token 1: {pair}")
-        print(f"    Count: {count}")
-        print()
+        print(f"  PairCreated({shorten_addr(token_0)}, {shorten_addr(token_1)}, {shorten_addr(pair)}, {count}) @ {tx_hash}")
 
         # Add the pair to the tracked pairs.
         self.update_filter(
@@ -111,6 +115,9 @@ class DexIndexer(StarkNetIndexer):
             .with_header(weak=True)
             .add_event(
                 EventFilter().with_from_address(event.data[2]).with_keys([SWAP_KEY])
+            )
+            .add_event(
+                EventFilter().with_from_address(event.data[2]).with_keys([SYNC_KEY])
             )
         )
 
@@ -124,13 +131,15 @@ class DexIndexer(StarkNetIndexer):
         amount_1_out = from_uint256(event.data[7], event.data[8])
         dest = felt.to_hex(event.data[9])
 
-        print("New Swap")
-        print(f"   Tx Hash: {tx_hash}")
-        print(f"    Sender: {sender}")
-        print(f"      Dest: {dest}")
-        print(f"   Amnt in: {amount_0_in} x {amount_1_in}")
-        print(f"  Amnt out: {amount_0_out} x {amount_1_out}")
-        print()
+        print(f"  Swap({shorten_addr(sender)}, {amount_0_in}, {amount_1_in}, {amount_0_out}, {amount_1_out}, {shorten_addr(dest)}) @ {tx_hash}")
+
+    async def handle_sync(self, cursor: Cursor, tx: Transaction, event: Event):
+        tx_hash = felt.to_hex(tx.meta.hash)
+
+        reserve_0 = from_uint256(event.data[0], event.data[1])
+        reserve_1 = from_uint256(event.data[2], event.data[3])
+
+        print(f"  Sync({reserve_0}, {reserve_1}) @ {tx_hash}")
 
 
 async def main(argv):

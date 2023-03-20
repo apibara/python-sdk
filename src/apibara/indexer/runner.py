@@ -10,7 +10,7 @@ from apibara.indexer.indexer import Indexer
 from apibara.indexer.info import Info, UserContext
 from apibara.indexer.storage import Filter, IndexerStorage
 from apibara.protocol import StreamService, credentials_with_auth_token
-from apibara.protocol.proto.stream_pb2 import DataFinality
+from apibara.protocol.proto.stream_pb2 import DataFinality, Cursor
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +141,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
         previous_end_cursor = None
         pending_received = False
+        additional_filter = None
+        runner_state = "default"  # or "resync"
+
         async for message in stream:
             logger.debug("received message")
             self._retry_count = 0
@@ -149,6 +152,46 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 assert (
                     len(message.data.data) <= 1
                 ), "indexer runner requires batch_size == 1"
+
+                if runner_state == "resync":
+                    logger.debug("handle block resync")
+                    end_cursor = message.data.end_cursor
+                    cursor = message.data.cursor
+                    logger.debug(f"handle resync batch {cursor} - {end_cursor}")
+                    with self._indexer_storage.create_storage_for_data(
+                        message.data.end_cursor
+                    ) as storage:
+                        for batch in message.data.data:
+                            decoded_data = indexer.decode_data(batch)
+                            # only call handler if the batch is for the same block
+                            if (
+                                decoded_data.header.block_number
+                                == previous_end_cursor.order_key
+                            ):
+                                info = Info(
+                                    context=ctx,
+                                    storage=storage,
+                                    cursor=cursor,
+                                    end_cursor=end_cursor,
+                                )
+
+                                await indexer.handle_data(info, decoded_data)
+                                new_additional_filter = indexer._get_and_reset_filter()
+                                if new_additional_filter is not None:
+                                    raise RuntimeError(
+                                        "additional filter not supported when rescanning block"
+                                    )
+                    # in any case, restart syncing from where it left off
+                    runner_state = "default"
+                    config.filter = config.filter.merge(additional_filter)
+                    self._indexer_storage._update_filter(config.filter)
+                    await client.configure(
+                        filter=config.filter.encode(),
+                        finality=config.finality,
+                        cursor=previous_end_cursor,
+                        batch_size=1,
+                    )
+                    continue
 
                 # invalidate any pending data, if any
                 if pending_received and previous_end_cursor is not None:
@@ -159,6 +202,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
                 end_cursor = message.data.end_cursor
                 cursor = message.data.cursor
+
+                logger.debug(f"handle batch {cursor} - {end_cursor}")
+
                 with self._indexer_storage.create_storage_for_data(
                     message.data.end_cursor
                 ) as storage:
@@ -173,24 +219,26 @@ class IndexerRunner(Generic[UserContext, Filter]):
                         )
                         if is_pending:
                             await indexer.handle_pending_data(info, decoded_data)
+                            additional_filter = indexer._get_and_reset_filter()
+                            if additional_filter is not None:
+                                raise RuntimeError(
+                                    "additional filter not supported for pending data"
+                                )
                         else:
                             await indexer.handle_data(info, decoded_data)
                             additional_filter = indexer._get_and_reset_filter()
 
-                    if additional_filter is not None:
-                        config.filter = config.filter.merge(additional_filter)
-                        self._indexer_storage._update_filter(
-                            config.filter, session=storage._session
-                        )
-                        # user updated the filter.
-                        # TODO: should probably rescan the current block for filters
-                        # that match the new filter.
-                        await client.configure(
-                            filter=config.filter.encode(),
-                            finality=config.finality,
-                            cursor=end_cursor,
-                            batch_size=1,
-                        )
+                        if additional_filter is not None:
+                            logger.debug(
+                                f"filter updated. rescanning block from {end_cursor.order_key - 1}"
+                            )
+                            runner_state = "resync"
+                            await client.configure(
+                                filter=additional_filter.encode(),
+                                finality=config.finality,
+                                cursor=Cursor(order_key=end_cursor.order_key - 1),
+                                batch_size=1,
+                            )
 
                 if not is_pending:
                     previous_end_cursor = message.data.end_cursor

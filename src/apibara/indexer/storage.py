@@ -101,7 +101,7 @@ class IndexerStorage(Generic[Filter]):
 
         return True
 
-    def _update_filter(self, filter: Filter, session: ClientSession):
+    def _update_filter(self, filter: Filter, session: Optional[ClientSession] = None):
         """Set the indexer filter, overriding the previous filter."""
         logger.debug("update stored filter")
 
