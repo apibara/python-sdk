@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.6.6 (NEXT)
+--------------------------------------
+
+Changed
+^^^^^^^
+
+ - Rescan blocks after filter update.
+
+
 Apibara Python SDK 0.6.5 (2023-03-16)
 --------------------------------------
 
