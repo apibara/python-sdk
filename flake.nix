@@ -12,6 +12,7 @@
         pkgs = import nixpkgs {
           inherit system;
         };
+
         apibaraEnv = pkgs.poetry2nix.mkPoetryEnv {
           projectDir = ./.;
           editablePackageSources = {
@@ -22,21 +23,39 @@
               grpcio = super.grpcio.override {
                 preferWheel = false;
               };
+
+              # fix `No module named XXX`.
+              tomli = super.tomli.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ self.flit-core ];
+              });
+              typing-extensions = super.typing-extensions.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ self.flit-core ];
+              });
+              pathspec = super.pathspec.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ self.flit-core ];
+              });
+
+              # add missing build tools
+              iniconfig = super.iniconfig.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ self.setuptools self.hatchling self.hatch-vcs ];
+              });
             }
           );
         };
       in
-        {
-          devShells.default = apibaraEnv.env.overrideAttrs (old:
-            {
-              LD_LIBRARY_PATH= "${pkgs.stdenv.cc.cc.lib}/lib";
-              buildInputs = with pkgs; [
-                stdenv.cc.cc.lib
-                protobuf
-                poetry
-              ];
-            }
-          );
-        }
+      {
+        formatter = pkgs.nixpkgs-fmt;
+
+        devShells.default = apibaraEnv.env.overrideAttrs (old:
+          {
+            LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+            buildInputs = with pkgs; [
+              stdenv.cc.cc.lib
+              protobuf
+              poetry
+            ];
+          }
+        );
+      }
     );
 }
