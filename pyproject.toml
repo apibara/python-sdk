@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "apibara"
-version = "0.6.6a0"
+version = "0.6.6"
 description = "Apibara cliend SDK. Stream and transform on-chain data with Python."
 authors = ["Francesco Ceccon <francesco@apibara.com>"]
 license = "Apache-2.0"
