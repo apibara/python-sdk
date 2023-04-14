@@ -1,13 +1,19 @@
 Changelog
 =========
 
-Apibara Python SDK 0.6.6 (NEXT)
+Apibara Python SDK 0.6.6 (2023-04-14)
 --------------------------------------
 
 Changed
 ^^^^^^^
 
  - Rescan blocks after filter update.
+
+Fixed
+^^^^^
+
+ - Exception when receiving invalidate message and log level is debug.
+ - Invalidate data when receiving an invalidate message.
 
 
 Apibara Python SDK 0.6.5 (2023-03-16)
