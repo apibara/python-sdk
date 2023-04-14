@@ -251,6 +251,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
                     info = Info(
                         context=ctx, storage=storage, cursor=cursor, end_cursor=cursor
                     )
+
+                    self._indexer_storage.invalidate(cursor, session=storage._session)
+
                     await indexer.handle_invalidate(info, cursor)
                 previous_end_cursor = message.invalidate.cursor
 

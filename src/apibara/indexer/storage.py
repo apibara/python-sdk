@@ -111,24 +111,30 @@ class IndexerStorage(Generic[Filter]):
             session=session,
         )
 
-    def invalidate(self, cursor: Cursor):
+    def invalidate(self, cursor: Cursor, session: Optional[ClientSession] = None):
         """Invalidates all data generate after `cursor`."""
-        logger.debug("invalidate data after %A", cursor)
-        with self._mongo.start_session() as session:
-            for collection in self.db.list_collections(session=session):
-                name = collection["name"]
-                if name.startswith("_"):
-                    continue
-                # remove items inserted after block_number
-                self.db[name].delete_many(
-                    {"_chain.valid_from": {"$gt": cursor.order_key}}, session=session
-                )
-                # rollback items updated after block_number
-                self.db[name].update_many(
-                    {"_chain.valid_to": {"$gt": cursor.order_key}},
-                    {"$set": {"_chain.valid_to": None}},
-                    session=session,
-                )
+        logger.debug(f"invalidate data after {cursor}")
+        if session is None:
+            with self._mongo.start_session() as session:
+                self._invalidate(cursor, session)
+        else:
+            self._invalidate(cursor, session)
+
+    def _invalidate(self, cursor: Cursor, session: ClientSession):
+        for collection in self.db.list_collections(session=session):
+            name = collection["name"]
+            if name.startswith("_"):
+                continue
+            # remove items inserted after block_number
+            self.db[name].delete_many(
+                {"_chain.valid_from": {"$gt": cursor.order_key}}, session=session
+            )
+            # rollback items updated after block_number
+            self.db[name].update_many(
+                {"_chain.valid_to": {"$gt": cursor.order_key}},
+                {"$set": {"_chain.valid_to": None}},
+                session=session,
+            )
 
     def drop_database(self):
         logger.debug("dropping database %s", self.db_name)
