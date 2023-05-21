@@ -1,0 +1,188 @@
+---
+title: Upgrading from v0.4 to v0.5
+titleShort: v0.4 -> v0.5
+description: "How to upgrade from v0.4 to v0.5 of the Apibara Python SDK"
+priority: 1
+group: 'upgrading'
+updatedAt: 2022-09-14 17:00
+---
+
+# Upgrading from v0.4 to v0.5
+
+This guide assumes you are using the Python indexer template.
+
+## Add the new version as dependency
+
+Update the apibara version in `pyproject.toml`, then run `poetry install` to update.
+
+```diff
+diff --git a/pyproject.toml b/pyproject.toml
+index f3a5f2d..19f536d 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -9,7 +9,7 @@ indexer = "indexer.main:cli"
+ 
+ [tool.poetry.dependencies]
+ python = ">3.7.2,<3.10"
+-apibara = "^0.4.3"
++apibara = "^0.5.7"
+ click = "^8.1.3"
+ "starknet.py" = "^0.4.4a0"
+ pymongo = {extras = ["srv"], version = "^4.1.1"}
+```
+
+
+## Update the indexer
+
+Start by updating the imports.
+
+```diff
+diff --git a/src/indexer/indexer.py b/src/indexer/indexer.py
+index 09f2f40..0db465a 100644
+--- a/src/indexer/indexer.py
++++ b/src/indexer/indexer.py
+@@ -1,7 +1,5 @@
+-from apibara import Client, IndexerRunner, Info, NewBlock, NewEvents
+-from apibara.indexer.runner import IndexerRunnerConfiguration
+-from apibara.model import EventFilter
+-from pymongo import MongoClient
++from apibara import EventFilter, IndexerRunner, Info, NewEvents, NewBlock
++from apibara.indexer import IndexerRunnerConfiguration
+```
+
+Remove the code used to reset state between restarts, this feature is now included in `IndexerRunner`.
+
+```diff
+diff --git a/src/indexer/indexer.py b/src/indexer/indexer.py
+index 09f2f40..0db465a 100644
+--- a/src/indexer/indexer.py
++++ b/src/indexer/indexer.py
+ async def run_indexer(server_url=None, mongo_url=None, restart=None):
+     print("Starting Apibara indexer")
+-    if mongo_url is None:
+-        mongo_url = "mongodb://apibara:apibara@localhost:27017"
+-
+-    if restart:
+-        async with Client.connect(server_url) as client:
+-            existing = await client.indexer_client().get_indexer(indexer_id)
+-            if existing:
+-                await client.indexer_client().delete_indexer(indexer_id)
+-
+-            # Delete old database entries.
+-            # Notice that apibara maps indexer ids to database names by
+-            # doing `indexer_id.replace('-', '_')`.
+-            # In the future all data will be handled by Apibara and this step
+-            # will not be necessary.
+-            mongo = MongoClient(mongo_url)
+-            mongo.drop_database(indexer_id.replace("-", "_"))
+ 
+     runner = IndexerRunner(
+         config=IndexerRunnerConfiguration(
+             apibara_url=server_url,
+             storage_url=mongo_url,
+         ),
++        reset_state=restart,
+-        network_name="starknet-goerli",
+         indexer_id=indexer_id,
+         new_events_handler=handle_events,
+     )
+ 
+```
+
+Change the default server url to the Apibara StarkNet Goerli stream in `main.py`.
+
+```diff
+diff --git a/src/indexer/main.py b/src/indexer/main.py
+index 5611bcc..421498a 100644
+--- a/src/indexer/main.py
++++ b/src/indexer/main.py
+@@ -22,16 +22,14 @@ def cli():
+ 
+ 
+ @cli.command()
+-@click.option("--server-url", default=None, help="Apibara Server url.")
++@click.option("--server-url", default=None, help="Apibara stream url.")
+ @click.option("--mongo-url", default=None, help="MongoDB url.")
+ @click.option("--restart", is_flag=True, help="Restart indexing from the beginning.")
+ @async_command
+ async def start(server_url, mongo_url, restart):
+     """Start the Apibara indexer."""
+-    # Use local apibara server url and mongodb url by default.
+-    # Start them by running docker-compose.
+     if server_url is None:
+-        server_url = "localhost:7171"
++        server_url = "goerli.starknet.stream.apibara.com"
+     if mongo_url is None:
+         mongo_url = "mongodb://apibara:apibara@localhost:27017"
+     await run_indexer(
+```
+
+## Update Docker
+
+The new SDK uses Apibara streams to get the blockchain data, so you can remove the `apibara/apibara` image from your `docker-compose.yml` and `docker-compose.prod.yml` files.
+You should also delete `configuration.toml`.
+
+```diff
+diff --git a/docker-compose.prod.yml b/docker-compose.prod.yml
+index 16e19f5..fe9c141 100644
+--- a/docker-compose.prod.yml
++++ b/docker-compose.prod.yml
+@@ -12,19 +12,6 @@ services:
+     volumes:
+     - ./_docker/apibara_mongodb:/data/db
+ 
+-  apibara:
+-    image: apibara/apibara:0.3.2
+-    restart: always
+-    command: start --config /usr/etc/apibara/configuration.toml
+-    environment:
+-      RUST_LOG: "apibara=info"
+-    ports:
+-    - 7171:7171
+-    volumes:
+-    - ./configuration.toml:/usr/etc/apibara/configuration.toml
+-    links:
+-    - mongo
+-
+   indexer:
+     build:
+       context: .
+@@ -32,12 +19,9 @@ services:
+     restart: always
+     command:
+     - start
+-    - --server-url
+-    - apibara:7171
+     - --mongo-url
+     - "mongodb://apibara:apibara@mongo:27017"
+     environment:
+       PYTHONUNBUFFERED: "1"
+     links:
+-    - mongo
+-    - apibara
+\ No newline at end of file
++    - mongo
+\ No newline at end of file
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 6c2eb31..e68b814 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -11,16 +11,3 @@ services:
+     - 27017:27017
+     volumes:
+     - ./_docker/apibara_mongodb:/data/db
+-
+-  apibara:
+-    image: apibara/apibara:0.3.2
+-    restart: always
+-    command: start --config /usr/etc/apibara/configuration.toml
+-    environment:
+-      RUST_LOG: "apibara=info"
+-    ports:
+-    - 7171:7171
+-    volumes:
+-    - ./configuration.toml:/usr/etc/apibara/configuration.toml
+-    links:
+-    - mongo
+\ No newline at end of file
+```

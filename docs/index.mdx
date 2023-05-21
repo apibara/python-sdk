@@ -1,0 +1,53 @@
+---
+title: Apibara Python SDK
+description: "Apibara is a library to build real-time, composable web3 streams in Python."
+priority: 1000
+updatedAt: 2023-02-14 14:00
+---
+
+# Apibara Python SDK
+
+It's possible to implement Apibara applications using the Python SDK.
+
+The Python SDK is great to develop applications that:
+
+ - use ML and AI to process blockchain data,
+ - interact with external http services,
+ - leverage the vast ecosystem of Python packages.
+
+## Installation
+
+You can install the `apibara` package using pip:
+
+```sh
+python3 -m pip install apibara[indexer]
+```
+
+Alternatively, you can use [Poetry](https://python-poetry.org/) and add Apibara to the list of dependencies:
+
+```toml
+[tool.poetry.dependencies]
+apibara = { version = "^0.6.0", extras = ["indexer"] }
+```
+
+## Using a template
+
+We provide a [template project](https://github.com/apibara/python-indexer-template) to get you started even quicker.
+
+### From the GitHub interface
+
+Click on the _"Use this template"_ button, then fill out the name and visibility of your new repository. Finally, clone the repository to your machine.
+
+### From the GitHub cli
+
+Create a new repository, starting from the provided template:
+
+```sh
+gh repo create my-indexer --clone --public --template https://github.com/apibara/python-indexer-template
+```
+
+This will create a new public repository in your GitHub account. The project is now ready in the `my-indexer` folder on your machine.
+
+<Callout>
+If you see a git-related error after creating the repository, `cd` into the new folder and run `git pull origin main`. 
+</Callout>
