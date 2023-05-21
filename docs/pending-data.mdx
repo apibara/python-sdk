@@ -1,0 +1,33 @@
+---
+title: Pending data
+description: "Learn how to index pending data with the Apibara Python SDK."
+priority: 70
+updatedAt: 2022-11-24 10:00
+---
+
+# Pending data
+
+The Python SDK supports [indexing pending data](/docs/pending-data) to implement
+_optimistic updates_ in your application.
+
+Adding support for pending blocks to your application is easy, simply specify 
+finality equal to `DataFinality.DATA_STATUS_PENDING`.
+
+If you're using the `Indexer` abstraction, implement the `handle_pending_data`
+method. This method is called every time the stream receives pending data.
+
+## Chain-aware storage
+
+The chain-aware storage provided by the Python SDK will handle data
+invalidation for you:
+
+ - On every new pending data, it invalidates all data from the previously
+ handled pending block.
+ - On new data blocks, it invalidates any pending data.
+
+
+## Best practices
+
+ - Add an attribute to documents to track wether the document was inserted in an
+ accepted block or in a pending block. Use this information to clearly display
+ data in your application.
