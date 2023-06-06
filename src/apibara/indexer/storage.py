@@ -1,6 +1,6 @@
 import logging
 from contextlib import contextmanager
-from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
+from typing import Any, Dict, Generic, Iterable, Iterator, Optional, TypeVar
 
 from pymongo import MongoClient
 from pymongo.client_session import ClientSession
@@ -10,10 +10,10 @@ import apibara.cursor as cursor_utils
 from apibara.indexer.configuration import IndexerConfiguration
 from apibara.protocol.proto.stream_pb2 import Cursor
 
-Document = dict[str, Any]
-DocumentFilter = dict[str, Any]
-Update = dict[str, Any]
-Projection = dict[str, any]
+Document = Dict[str, Any]
+DocumentFilter = Dict[str, Any]
+Update = Dict[str, Any]
+Projection = Dict[str, Any]
 
 Filter = TypeVar("Filter")
 
@@ -169,7 +169,7 @@ class ReadOnlyStorage:
         self,
         collection: str,
         filter: DocumentFilter,
-        sort: Optional[dict[str, int]] = None,
+        sort: Optional[Dict[str, int]] = None,
         projection: Optional[Projection] = None,
         skip: int = 0,
         limit: int = 0,
