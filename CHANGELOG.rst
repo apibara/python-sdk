@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.6.7 (2023-06-08)
+--------------------------------------
+
+Fixed
+^^^^^
+
+ - Improve compatibility with Python 3.8
+
+
 Apibara Python SDK 0.6.6 (2023-04-14)
 --------------------------------------
 
