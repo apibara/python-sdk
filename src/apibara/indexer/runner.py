@@ -10,7 +10,7 @@ from apibara.indexer.indexer import Indexer
 from apibara.indexer.info import Info, UserContext
 from apibara.indexer.storage import Filter, IndexerStorage
 from apibara.protocol import StreamService, credentials_with_auth_token
-from apibara.protocol.proto.stream_pb2 import DataFinality, Cursor
+from apibara.protocol.proto.stream_pb2 import Cursor, DataFinality
 
 logger = logging.getLogger(__name__)
 

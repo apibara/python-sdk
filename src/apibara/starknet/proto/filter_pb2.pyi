@@ -24,6 +24,18 @@ class DeclareTransactionFilter(_message.Message):
         sender_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
     ) -> None: ...
 
+class DeclaredClassFilter(_message.Message):
+    __slots__ = ["class_hash", "compiled_class_hash"]
+    CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
+    COMPILED_CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
+    class_hash: _types_pb2.FieldElement
+    compiled_class_hash: _types_pb2.FieldElement
+    def __init__(
+        self,
+        class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+        compiled_class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+    ) -> None: ...
+
 class DeclaredContractFilter(_message.Message):
     __slots__ = ["class_hash"]
     CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
@@ -198,12 +210,34 @@ class NonceUpdateFilter(_message.Message):
         nonce: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
     ) -> None: ...
 
+class ReplacedClassFilter(_message.Message):
+    __slots__ = ["class_hash", "contract_address"]
+    CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
+    CONTRACT_ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    class_hash: _types_pb2.FieldElement
+    contract_address: _types_pb2.FieldElement
+    def __init__(
+        self,
+        contract_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+        class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+    ) -> None: ...
+
 class StateUpdateFilter(_message.Message):
-    __slots__ = ["declared_contracts", "deployed_contracts", "nonces", "storage_diffs"]
+    __slots__ = [
+        "declared_classes",
+        "declared_contracts",
+        "deployed_contracts",
+        "nonces",
+        "replaced_classes",
+        "storage_diffs",
+    ]
+    DECLARED_CLASSES_FIELD_NUMBER: _ClassVar[int]
     DECLARED_CONTRACTS_FIELD_NUMBER: _ClassVar[int]
     DEPLOYED_CONTRACTS_FIELD_NUMBER: _ClassVar[int]
     NONCES_FIELD_NUMBER: _ClassVar[int]
+    REPLACED_CLASSES_FIELD_NUMBER: _ClassVar[int]
     STORAGE_DIFFS_FIELD_NUMBER: _ClassVar[int]
+    declared_classes: _containers.RepeatedCompositeFieldContainer[DeclaredClassFilter]
     declared_contracts: _containers.RepeatedCompositeFieldContainer[
         DeclaredContractFilter
     ]
@@ -211,6 +245,7 @@ class StateUpdateFilter(_message.Message):
         DeployedContractFilter
     ]
     nonces: _containers.RepeatedCompositeFieldContainer[NonceUpdateFilter]
+    replaced_classes: _containers.RepeatedCompositeFieldContainer[ReplacedClassFilter]
     storage_diffs: _containers.RepeatedCompositeFieldContainer[StorageDiffFilter]
     def __init__(
         self,
@@ -222,6 +257,12 @@ class StateUpdateFilter(_message.Message):
             _Iterable[_Union[DeployedContractFilter, _Mapping]]
         ] = ...,
         nonces: _Optional[_Iterable[_Union[NonceUpdateFilter, _Mapping]]] = ...,
+        declared_classes: _Optional[
+            _Iterable[_Union[DeclaredClassFilter, _Mapping]]
+        ] = ...,
+        replaced_classes: _Optional[
+            _Iterable[_Union[ReplacedClassFilter, _Mapping]]
+        ] = ...,
     ) -> None: ...
 
 class StorageDiffFilter(_message.Message):
