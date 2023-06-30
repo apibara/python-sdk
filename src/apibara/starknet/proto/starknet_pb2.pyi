@@ -88,15 +88,30 @@ class BlockHeader(_message.Message):
     ) -> None: ...
 
 class DeclareTransaction(_message.Message):
-    __slots__ = ["class_hash", "sender_address"]
+    __slots__ = ["class_hash", "compiled_class_hash", "sender_address"]
     CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
+    COMPILED_CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
     SENDER_ADDRESS_FIELD_NUMBER: _ClassVar[int]
     class_hash: _types_pb2.FieldElement
+    compiled_class_hash: _types_pb2.FieldElement
     sender_address: _types_pb2.FieldElement
     def __init__(
         self,
         class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
         sender_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+        compiled_class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+    ) -> None: ...
+
+class DeclaredClass(_message.Message):
+    __slots__ = ["class_hash", "compiled_class_hash"]
+    CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
+    COMPILED_CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
+    class_hash: _types_pb2.FieldElement
+    compiled_class_hash: _types_pb2.FieldElement
+    def __init__(
+        self,
+        class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+        compiled_class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
     ) -> None: ...
 
 class DeclaredContract(_message.Message):
@@ -162,18 +177,21 @@ class DeployedContract(_message.Message):
     ) -> None: ...
 
 class Event(_message.Message):
-    __slots__ = ["data", "from_address", "keys"]
+    __slots__ = ["data", "from_address", "index", "keys"]
     DATA_FIELD_NUMBER: _ClassVar[int]
     FROM_ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    INDEX_FIELD_NUMBER: _ClassVar[int]
     KEYS_FIELD_NUMBER: _ClassVar[int]
     data: _containers.RepeatedCompositeFieldContainer[_types_pb2.FieldElement]
     from_address: _types_pb2.FieldElement
+    index: int
     keys: _containers.RepeatedCompositeFieldContainer[_types_pb2.FieldElement]
     def __init__(
         self,
         from_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
         keys: _Optional[_Iterable[_Union[_types_pb2.FieldElement, _Mapping]]] = ...,
         data: _Optional[_Iterable[_Union[_types_pb2.FieldElement, _Mapping]]] = ...,
+        index: _Optional[int] = ...,
     ) -> None: ...
 
 class EventWithTransaction(_message.Message):
@@ -238,15 +256,21 @@ class L1HandlerTransaction(_message.Message):
     ) -> None: ...
 
 class L2ToL1Message(_message.Message):
-    __slots__ = ["payload", "to_address"]
+    __slots__ = ["from_address", "index", "payload", "to_address"]
+    FROM_ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    INDEX_FIELD_NUMBER: _ClassVar[int]
     PAYLOAD_FIELD_NUMBER: _ClassVar[int]
     TO_ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    from_address: _types_pb2.FieldElement
+    index: int
     payload: _containers.RepeatedCompositeFieldContainer[_types_pb2.FieldElement]
     to_address: _types_pb2.FieldElement
     def __init__(
         self,
         to_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
         payload: _Optional[_Iterable[_Union[_types_pb2.FieldElement, _Mapping]]] = ...,
+        index: _Optional[int] = ...,
+        from_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
     ) -> None: ...
 
 class L2ToL1MessageWithTransaction(_message.Message):
@@ -276,15 +300,38 @@ class NonceUpdate(_message.Message):
         nonce: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
     ) -> None: ...
 
+class ReplacedClass(_message.Message):
+    __slots__ = ["class_hash", "contract_address"]
+    CLASS_HASH_FIELD_NUMBER: _ClassVar[int]
+    CONTRACT_ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    class_hash: _types_pb2.FieldElement
+    contract_address: _types_pb2.FieldElement
+    def __init__(
+        self,
+        contract_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+        class_hash: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
+    ) -> None: ...
+
 class StateDiff(_message.Message):
-    __slots__ = ["declared_contracts", "deployed_contracts", "nonces", "storage_diffs"]
+    __slots__ = [
+        "declared_classes",
+        "declared_contracts",
+        "deployed_contracts",
+        "nonces",
+        "replaced_classes",
+        "storage_diffs",
+    ]
+    DECLARED_CLASSES_FIELD_NUMBER: _ClassVar[int]
     DECLARED_CONTRACTS_FIELD_NUMBER: _ClassVar[int]
     DEPLOYED_CONTRACTS_FIELD_NUMBER: _ClassVar[int]
     NONCES_FIELD_NUMBER: _ClassVar[int]
+    REPLACED_CLASSES_FIELD_NUMBER: _ClassVar[int]
     STORAGE_DIFFS_FIELD_NUMBER: _ClassVar[int]
+    declared_classes: _containers.RepeatedCompositeFieldContainer[DeclaredClass]
     declared_contracts: _containers.RepeatedCompositeFieldContainer[DeclaredContract]
     deployed_contracts: _containers.RepeatedCompositeFieldContainer[DeployedContract]
     nonces: _containers.RepeatedCompositeFieldContainer[NonceUpdate]
+    replaced_classes: _containers.RepeatedCompositeFieldContainer[ReplacedClass]
     storage_diffs: _containers.RepeatedCompositeFieldContainer[StorageDiff]
     def __init__(
         self,
@@ -296,6 +343,8 @@ class StateDiff(_message.Message):
             _Iterable[_Union[DeployedContract, _Mapping]]
         ] = ...,
         nonces: _Optional[_Iterable[_Union[NonceUpdate, _Mapping]]] = ...,
+        declared_classes: _Optional[_Iterable[_Union[DeclaredClass, _Mapping]]] = ...,
+        replaced_classes: _Optional[_Iterable[_Union[ReplacedClass, _Mapping]]] = ...,
     ) -> None: ...
 
 class StateUpdate(_message.Message):
@@ -398,17 +447,20 @@ class TransactionMeta(_message.Message):
 class TransactionReceipt(_message.Message):
     __slots__ = [
         "actual_fee",
+        "contract_address",
         "events",
         "l2_to_l1_messages",
         "transaction_hash",
         "transaction_index",
     ]
     ACTUAL_FEE_FIELD_NUMBER: _ClassVar[int]
+    CONTRACT_ADDRESS_FIELD_NUMBER: _ClassVar[int]
     EVENTS_FIELD_NUMBER: _ClassVar[int]
     L2_TO_L1_MESSAGES_FIELD_NUMBER: _ClassVar[int]
     TRANSACTION_HASH_FIELD_NUMBER: _ClassVar[int]
     TRANSACTION_INDEX_FIELD_NUMBER: _ClassVar[int]
     actual_fee: _types_pb2.FieldElement
+    contract_address: _types_pb2.FieldElement
     events: _containers.RepeatedCompositeFieldContainer[Event]
     l2_to_l1_messages: _containers.RepeatedCompositeFieldContainer[L2ToL1Message]
     transaction_hash: _types_pb2.FieldElement
@@ -420,6 +472,7 @@ class TransactionReceipt(_message.Message):
         actual_fee: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
         l2_to_l1_messages: _Optional[_Iterable[_Union[L2ToL1Message, _Mapping]]] = ...,
         events: _Optional[_Iterable[_Union[Event, _Mapping]]] = ...,
+        contract_address: _Optional[_Union[_types_pb2.FieldElement, _Mapping]] = ...,
     ) -> None: ...
 
 class TransactionWithReceipt(_message.Message):
