@@ -1,8 +1,8 @@
 {
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.11";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
   inputs.poetry2nix = {
-    url = "github:nix-community/poetry2nix";
+    url = "github:nix-community/poetry2nix?ref=1.42.1";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -13,10 +13,11 @@
           inherit system;
         };
 
-        apibaraEnv = pkgs.poetry2nix.mkPoetryEnv {
+        apibara-sdk = pkgs.poetry2nix.mkPoetryEnv {
+          python = pkgs.python310;
           projectDir = ./.;
           editablePackageSources = {
-            apibara = ./src;
+            apibara = if builtins.getEnv "PROJECT_DIR" == "" then ./src else builtins.getEnv "PROJECT_DIR";
           };
           overrides = pkgs.poetry2nix.overrides.withDefaults (
             self: super: {
@@ -46,16 +47,14 @@
       {
         formatter = pkgs.nixpkgs-fmt;
 
-        devShells.default = apibaraEnv.env.overrideAttrs (old:
-          {
-            LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
-            buildInputs = with pkgs; [
-              stdenv.cc.cc.lib
-              protobuf
-              poetry
-            ];
-          }
-        );
+        devShells.default = apibara-sdk.env.overrideAttrs (oldAttrs: {
+          LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+          buildInputs = with pkgs; [
+            stdenv.cc.cc.lib
+            protobuf
+            poetry
+          ];
+        });
       }
     );
 }
