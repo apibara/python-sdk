@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.7.1 (UNRELEASED)
+--------------------------------------
+
+Fixed
+^^^^^
+
+ - Don't store pending cursor to avoid crashing on restart.
+
+
 Apibara Python SDK 0.7.0 (2023-07-08)
 --------------------------------------
 
