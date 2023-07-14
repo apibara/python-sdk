@@ -20,8 +20,13 @@ root_logger = logging.getLogger("apibara")
 root_logger.setLevel(logging.INFO)
 root_logger.addHandler(logging.StreamHandler())
 
-briqs_address = felt.from_hex(
-    "0x01435498bf393da86b4733b9264a86b58a42b31f8d8b8ba309593e5c17847672"
+# Application logs
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
+
+eth_address = felt.from_hex(
+    "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
 )
 
 # `Transfer` selector.
@@ -32,33 +37,48 @@ transfer_key = felt.from_hex(
 )
 
 
-class BriqIndexer(StarkNetIndexer):
+class TokenIndexer(StarkNetIndexer):
     def indexer_id(self) -> str:
         return "starknet-example"
 
     def initial_configuration(self) -> Filter:
         # Return initial configuration of the indexer.
         return IndexerConfiguration(
-            filter=Filter().add_event(
-                EventFilter().with_from_address(briqs_address).with_keys([transfer_key])
+            filter=Filter().with_header(weak=True).add_event(
+                EventFilter().with_from_address(eth_address).with_keys([transfer_key])
             ),
-            starting_cursor=starknet_cursor(10_000),
+            starting_cursor=starknet_cursor(830_000),
             finality=DataFinality.DATA_STATUS_PENDING,
         )
 
     async def handle_data(self, info: Info, data: Block):
-        # Handle one block of data
-        print(info.cursor, info.end_cursor)
-        for event_with_tx in data.events:
-            print(event_with_tx.event)
+        self._handle_block(data, is_pending=False)
 
     async def handle_pending_data(self, info: Info, data: Block):
-        print("Pending")
-        for event_with_tx in data.events:
-            print(event_with_tx.event)
+        self._handle_block(data, is_pending=True)
 
     async def handle_invalidate(self, _info: Info, cursor: Cursor):
         print(f"Chain reorganization {cursor}")
+
+    def _handle_block(self, data: Block, is_pending: bool):
+        block_number = data.header.block_number
+
+        if is_pending:
+            block_hash = "(pending)"
+        else:
+            block_hash = data.header.block_hash
+            block_hash = f"({felt.to_hex(block_hash)})"
+
+        logger.info(f"Block #{block_number} {block_hash}")
+        for event_with_tx in data.events:
+            event = event_with_tx.event
+            receipt = event_with_tx.receipt
+
+            tx_hash = receipt.transaction_hash
+            src = felt.to_hex(event.data[0])[:6]
+            dest = felt.to_hex(event.data[1])[:6]
+            _event_id = f"{felt.to_hex(tx_hash)}_{event.index}"
+            print(f"  Transfer from {src}... to {dest}...")
 
 
 async def main(argv):
@@ -68,15 +88,14 @@ async def main(argv):
 
     runner = IndexerRunner(
         config=IndexerRunnerConfiguration(
-            stream_url="mainnet.starknet.a5a.ch:443",
+            stream_url="goerli.starknet.a5a.ch:443",
             storage_url="mongodb://apibara:apibara@localhost:27017",
             token=AUTH_TOKEN,
         ),
         reset_state=args.reset,
     )
 
-    # ctx can be accessed by the callbacks in `info`.
-    await runner.run(BriqIndexer(), ctx={"network": "starknet-mainnet"})
+    await runner.run(TokenIndexer())
 
 
 if __name__ == "__main__":
