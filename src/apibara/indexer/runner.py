@@ -111,7 +111,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
             try:
                 await self._connect_and_stream(indexer, ctx)
             except Exception as exc:
-                logger.debug(f"indexer exception {exc}")
+                logger.exception(f"indexer exception")
                 self._retry_count += 1
                 reconnect = await indexer.handle_reconnect(exc, self._retry_count)
 
