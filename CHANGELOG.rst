@@ -9,6 +9,11 @@ Fixed
 
  - Don't store pending cursor to avoid crashing on restart.
 
+Changed
+^^^^^^^
+
+ - Print more detailed information on exceptions.
+
 
 Apibara Python SDK 0.7.0 (2023-07-08)
 --------------------------------------
