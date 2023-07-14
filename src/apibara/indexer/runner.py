@@ -205,9 +205,20 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
                 logger.debug(f"handle batch {cursor} - {end_cursor}")
 
-                with self._indexer_storage.create_storage_for_data(
-                    message.data.end_cursor
-                ) as storage:
+                if is_pending:
+                    create_storage = (
+                        lambda cursor: self._indexer_storage.create_storage_for_pending(
+                            cursor
+                        )
+                    )
+                else:
+                    create_storage = (
+                        lambda cursor: self._indexer_storage.create_storage_for_data(
+                            cursor
+                        )
+                    )
+
+                with create_storage(message.data.end_cursor) as storage:
                     additional_filter = None
                     for batch in message.data.data:
                         decoded_data = indexer.decode_data(batch)
