@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Apibara Python SDK 0.7.2 (UNRELEASED)
+Apibara Python SDK 0.7.2 (2023-07-17)
 --------------------------------------
 
 Changed
