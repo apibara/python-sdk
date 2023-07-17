@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Apibara Python SDK 0.7.2 (UNRELEASED)
+--------------------------------------
+
+Changed
+^^^^^^^
+
+ - Add option to :code:`IndexerRunner` to configure timeout.
+
+
 Apibara Python SDK 0.7.1 (2023-07-14)
 --------------------------------------
 
