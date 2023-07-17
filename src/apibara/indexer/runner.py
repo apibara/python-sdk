@@ -56,6 +56,8 @@ class IndexerRunner(Generic[UserContext, Filter]):
         options to set the input stream and connection string.
     client_options:
         list of options passed to the gRPC channel.
+    timeout:
+        custom timeout for a message to arrive.
     """
 
     def __init__(
@@ -64,6 +66,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         reset_state: bool = False,
         config: Optional[IndexerRunnerConfiguration] = None,
         client_options: Optional[List[Tuple[str, Any]]] = None,
+        timeout: Optional[int] = None,
     ) -> None:
         if config is None:
             config = IndexerRunnerConfiguration()
@@ -73,6 +76,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         self._config = config
         self._indexer_id = None
         self._indexer_storage = None
+        self._timeout = timeout
         self._client_options = client_options
 
     async def run(self, indexer: Indexer, *, ctx: Optional[UserContext] = None):
@@ -120,7 +124,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
     async def _connect_and_stream(self, indexer: Indexer, ctx: Optional[UserContext]):
         channel = self._channel()
-        (client, stream) = StreamService(channel).stream_data()
+        (client, stream) = StreamService(channel).stream_data(timeout=self._timeout)
 
         config = indexer.initial_configuration()
         has_stored = self._indexer_storage.update_with_stored_configuration(config)
