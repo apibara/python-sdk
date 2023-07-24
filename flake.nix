@@ -54,6 +54,20 @@
             }
           );
         };
+
+        ci-test = pkgs.writeShellApplication {
+          name = "ci-test";
+          text = ''
+            pytest
+          '';
+        };
+
+        ci-build = pkgs.writeShellApplication {
+          name = "ci-build";
+          text = ''
+            poetry build
+          '';
+        };
       in
       {
         formatter = pkgs.nixpkgs-fmt;
@@ -76,6 +90,8 @@
             stdenv.cc.cc.lib
             protobuf
             poetry
+            ci-test
+            ci-build
           ];
         });
       }

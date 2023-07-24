@@ -1,0 +1,14 @@
+steps:
+- label: ":white_check_mark: :python-black: Checks"
+  command: nix flake check
+
+- wait
+
+- label: ":python: :pytest: Pytest"
+  command: nix develop -c 'ci-test'
+
+- wait
+
+- label: ":python: :hammer: Poetry Build"
+  command: nix develop -c 'ci-build'
+
