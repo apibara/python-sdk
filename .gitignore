@@ -3,3 +3,4 @@ venv
 dist
 .pytest_cache
 _docker
+/.pre-commit-config.yaml

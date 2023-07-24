@@ -5,9 +5,12 @@ from typing import AsyncIterable, Iterable, Optional, Tuple, Union
 import grpc
 from grpc.aio import Channel
 
-from apibara.protocol.proto.stream_pb2 import (Cursor, DataFinality,
-                                               StreamDataRequest,
-                                               StreamDataResponse)
+from apibara.protocol.proto.stream_pb2 import (
+    Cursor,
+    DataFinality,
+    StreamDataRequest,
+    StreamDataResponse,
+)
 from apibara.protocol.proto.stream_pb2_grpc import StreamStub
 
 DEFAULT_TIMEOUT = 45.0

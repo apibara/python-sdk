@@ -28,6 +28,7 @@ from apibara.protocol.proto.stream_pb2 import DataFinality
 from apibara.starknet import Block, EventFilter, Filter, felt
 from apibara.starknet.cursor import starknet_cursor
 from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter
+
 # Notice that here we import the low-level, proto definition
 # of filter.
 from apibara.starknet.proto.filter_pb2 import Filter as ProtoFilter

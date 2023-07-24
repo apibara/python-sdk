@@ -107,7 +107,9 @@ class DexIndexer(StarkNetIndexer):
         token_1 = felt.to_hex(event.data[1])
         pair = felt.to_hex(event.data[2])
         count = felt.to_int(event.data[3])
-        print(f"  PairCreated({shorten_addr(token_0)}, {shorten_addr(token_1)}, {shorten_addr(pair)}, {count}) @ {tx_hash}")
+        print(
+            f"  PairCreated({shorten_addr(token_0)}, {shorten_addr(token_1)}, {shorten_addr(pair)}, {count}) @ {tx_hash}"
+        )
 
         # Add the pair to the tracked pairs.
         self.update_filter(
@@ -131,7 +133,9 @@ class DexIndexer(StarkNetIndexer):
         amount_1_out = from_uint256(event.data[7], event.data[8])
         dest = felt.to_hex(event.data[9])
 
-        print(f"  Swap({shorten_addr(sender)}, {amount_0_in}, {amount_1_in}, {amount_0_out}, {amount_1_out}, {shorten_addr(dest)}) @ {tx_hash}")
+        print(
+            f"  Swap({shorten_addr(sender)}, {amount_0_in}, {amount_1_in}, {amount_0_out}, {amount_1_out}, {shorten_addr(dest)}) @ {tx_hash}"
+        )
 
     async def handle_sync(self, cursor: Cursor, tx: Transaction, event: Event):
         tx_hash = felt.to_hex(tx.meta.hash)
