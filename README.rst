@@ -9,10 +9,17 @@ Apibara Python SDK
 
 Build web3-powered applications in Python. 
 
+
 Development
 -----------
 
-Install all dependencies with:
+Install the following packages using your OS package manager:
+
+* protobuf
+* poetry
+* docker (for testing)
+
+Install all Python dependencies with:
 
 .. code::
 
@@ -40,10 +47,22 @@ To update the protobuf definitions:
         --pyi_out=src/apibara/starknet/proto protos/starknet/*
 
 
+Development (with Nix)
+----------------------
+
+This repository provides a Nix development environment. To use it simply run:
+
+.. code::
+
+   nix develop
+
+All dependencies, including pre-commit hooks, will be installed for you.
+
+
 License
 -------
 
-   Copyright 2022 GNC Labs Limited
+   Copyright 2023 GNC Labs Limited
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
