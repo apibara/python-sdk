@@ -7,7 +7,6 @@ from apibara.starknet import starknet_cursor
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Docker permission in CI")
 async def test_insert_one(storage: IndexerStorage):
     with storage.create_storage_for_block(starknet_cursor(100)) as s:
         await s.insert_one("capibaras", {"name": "bob", "age": 3})
@@ -19,7 +18,6 @@ async def test_insert_one(storage: IndexerStorage):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Docker permission in CI")
 async def test_insert_many(storage: IndexerStorage):
     with storage.create_storage_for_block(starknet_cursor(100)) as s:
         await s.insert_many(
@@ -37,7 +35,6 @@ async def test_insert_many(storage: IndexerStorage):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Docker permission in CI")
 async def test_delete_one(storage: IndexerStorage):
     with storage.create_storage_for_block(starknet_cursor(100)) as s:
         await s.insert_many(
@@ -58,7 +55,6 @@ async def test_delete_one(storage: IndexerStorage):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Docker permission in CI")
 async def test_delete_many(storage: IndexerStorage):
     with storage.create_storage_for_block(starknet_cursor(100)) as s:
         await s.insert_many(
@@ -80,7 +76,6 @@ async def test_delete_many(storage: IndexerStorage):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Docker permission in CI")
 async def test_find_one_and_replace(storage: IndexerStorage):
     with storage.create_storage_for_block(starknet_cursor(100)) as s:
         await s.insert_many(
@@ -103,7 +98,6 @@ async def test_find_one_and_replace(storage: IndexerStorage):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Docker permission in CI")
 async def test_find_one_and_update(storage: IndexerStorage):
     with storage.create_storage_for_block(starknet_cursor(100)) as s:
         await s.insert_many(
@@ -124,7 +118,6 @@ async def test_find_one_and_update(storage: IndexerStorage):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Docker permission in CI")
 async def test_invalidate(storage: IndexerStorage):
     with storage.create_storage_for_block(starknet_cursor(100)) as s:
         await s.insert_many(
