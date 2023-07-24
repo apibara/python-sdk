@@ -55,6 +55,25 @@
           );
         };
 
+        gen-proto = pkgs.writeShellApplication {
+          name = "gen-proto";
+          text = ''
+            echo "Generate protocol proto files"
+            protoc \
+            -I=./protos/protocol \
+            --python_out=./src/apibara/protocol/proto \
+            --pyi_out=./src/apibara/protocol/proto \
+            protos/protocol/*
+
+            echo "Generate Starknet proto files"
+            protoc \
+            -I=./protos/starknet \
+            --python_out=./src/apibara/starknet/proto \
+            --pyi_out=./src/apibara/starknet/proto \
+            protos/starknet/*
+          '';
+        };
+
         ci-test = pkgs.writeShellApplication {
           name = "ci-test";
           text = ''
@@ -90,6 +109,7 @@
             stdenv.cc.cc.lib
             protobuf
             poetry
+            gen-proto
             ci-test
             ci-build
           ];
