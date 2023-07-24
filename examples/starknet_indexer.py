@@ -44,7 +44,9 @@ class TokenIndexer(StarkNetIndexer):
     def initial_configuration(self) -> Filter:
         # Return initial configuration of the indexer.
         return IndexerConfiguration(
-            filter=Filter().with_header(weak=True).add_event(
+            filter=Filter()
+            .with_header(weak=True)
+            .add_event(
                 EventFilter().with_from_address(eth_address).with_keys([transfer_key])
             ),
             starting_cursor=starknet_cursor(830_000),

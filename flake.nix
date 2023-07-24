@@ -5,8 +5,11 @@
     url = "github:nix-community/poetry2nix?ref=1.42.1";
     inputs.nixpkgs.follows = "nixpkgs";
   };
+  inputs.pre-commit-hooks = {
+    url = "github:cachix/pre-commit-hooks.nix";
+  };
 
-  outputs = { self, nixpkgs, flake-utils, poetry2nix }:
+  outputs = { self, nixpkgs, flake-utils, poetry2nix, pre-commit-hooks, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -40,6 +43,14 @@
               iniconfig = super.iniconfig.overridePythonAttrs (old: {
                 buildInputs = (old.buildInputs or [ ]) ++ [ self.setuptools self.hatchling self.hatch-vcs ];
               });
+              urllib3 = super.urllib3.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ self.setuptools self.hatchling self.hatch-vcs ];
+              });
+
+              # fix `Could not find a version that satisfies the requirement XXX (from versions: none)`
+              requests = super.requests.overridePythonAttrs (old: {
+                nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ self.setuptools-scm ];
+              });
             }
           );
         };
@@ -47,7 +58,19 @@
       {
         formatter = pkgs.nixpkgs-fmt;
 
+        checks = {
+          pre-commit-check = pre-commit-hooks.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              nixpkgs-fmt.enable = true;
+              black.enable = true;
+              isort.enable = true;
+            };
+          };
+        };
+
         devShells.default = apibara-sdk.env.overrideAttrs (oldAttrs: {
+          inherit (self.checks.${system}.pre-commit-check) shellHook;
           LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
           buildInputs = with pkgs; [
             stdenv.cc.cc.lib

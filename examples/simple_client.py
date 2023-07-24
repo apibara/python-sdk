@@ -5,8 +5,7 @@ from decimal import Decimal
 from grpc import ssl_channel_credentials
 from grpc.aio import secure_channel
 
-from apibara.protocol import (StreamAddress, StreamService,
-                              credentials_with_auth_token)
+from apibara.protocol import StreamAddress, StreamService, credentials_with_auth_token
 from apibara.protocol.proto.stream_pb2 import DataFinality
 from apibara.starknet import Block, EventFilter, Filter, felt
 from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter

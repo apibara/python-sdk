@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
+from testcontainers.mongodb import MongoDbContainer
 
 from apibara.indexer.storage import IndexerStorage
 
@@ -17,8 +18,9 @@ def load_json_fixture(filename):
 
 @pytest.fixture(scope="function")
 def storage():
-    connection_url = "mongodb://apibara:apibara@localhost:27017"
-    storage = IndexerStorage(connection_url, "python-sdk-test-db")
-    yield storage
-    # cleanup database
-    storage.drop_database()
+    with MongoDbContainer("mongo:latest") as mongo:
+        connection_url = mongo.get_connection_url()
+        storage = IndexerStorage(connection_url, "python-sdk-test-db")
+        yield storage
+        # cleanup database
+        storage.drop_database()

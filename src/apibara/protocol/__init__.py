@@ -1,10 +1,19 @@
 from dataclasses import dataclass
 from typing import ClassVar
 
-from .client import (BearerTokenAuth, StreamClient, StreamIter, StreamService,
-                     credentials_with_auth_token)
-from .proto.stream_pb2 import (Cursor, DataFinality, StreamDataRequest,
-                               StreamDataResponse)
+from .client import (
+    BearerTokenAuth,
+    StreamClient,
+    StreamIter,
+    StreamService,
+    credentials_with_auth_token,
+)
+from .proto.stream_pb2 import (
+    Cursor,
+    DataFinality,
+    StreamDataRequest,
+    StreamDataResponse,
+)
 
 
 @dataclass
