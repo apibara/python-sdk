@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Apibara Python SDK 0.7.3a0 (2023-08-01)
+----------------------------------------
+
+Addded
+^^^^^^
+
+ - Add hidden option :code:`_reconnect_to_avoid_disconnection` to
+   :code:`IndexerRunner` to automatically resend the configuration to the
+   server not to be disconnected.
+
+
 Apibara Python SDK 0.7.2 (2023-07-17)
 --------------------------------------
 
