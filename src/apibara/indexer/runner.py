@@ -268,7 +268,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
                     previous_end_cursor = message.data.end_cursor
 
                 if self._reconnect_to_avoid_disconnection is not None:
-                    if _blocks_before_reconnect <= 0:
+                    if _blocks_before_reconnect <= 0 and not is_pending:
                         _blocks_before_reconnect = (
                             self._reconnect_to_avoid_disconnection
                         )
