@@ -67,6 +67,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         config: Optional[IndexerRunnerConfiguration] = None,
         client_options: Optional[List[Tuple[str, Any]]] = None,
         timeout: Optional[int] = None,
+        _reconnect_to_avoid_disconnection: Optional[int] = None,
     ) -> None:
         if config is None:
             config = IndexerRunnerConfiguration()
@@ -78,6 +79,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         self._indexer_storage = None
         self._timeout = timeout
         self._client_options = client_options
+        self._reconnect_to_avoid_disconnection = _reconnect_to_avoid_disconnection
 
     async def run(self, indexer: Indexer, *, ctx: Optional[UserContext] = None):
         """Run the indexer until stopped."""
@@ -148,6 +150,10 @@ class IndexerRunner(Generic[UserContext, Filter]):
         additional_filter = None
         runner_state = "default"  # or "resync"
 
+        # Reconnect every few blocks to avoid disconnection
+        if self._reconnect_to_avoid_disconnection is not None:
+            _blocks_before_reconnect = self._reconnect_to_avoid_disconnection
+
         async for message in stream:
             logger.debug("received message")
             self._retry_count = 0
@@ -156,6 +162,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 assert (
                     len(message.data.data) <= 1
                 ), "indexer runner requires batch_size == 1"
+
+                if self._reconnect_to_avoid_disconnection is not None:
+                    _blocks_before_reconnect -= 1
 
                 if runner_state == "resync":
                     logger.debug("handle block resync")
@@ -257,6 +266,18 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
                 if not is_pending:
                     previous_end_cursor = message.data.end_cursor
+
+                if self._reconnect_to_avoid_disconnection is not None:
+                    if _blocks_before_reconnect <= 0:
+                        _blocks_before_reconnect = (
+                            self._reconnect_to_avoid_disconnection
+                        )
+                        await client.configure(
+                            filter=config.filter.encode(),
+                            finality=config.finality,
+                            cursor=end_cursor,
+                            batch_size=1,
+                        )
 
             elif message.invalidate is not None:
                 with self._indexer_storage.create_storage_for_invalidate(
