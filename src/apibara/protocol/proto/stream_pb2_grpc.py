@@ -19,12 +19,23 @@ class StreamStub(object):
             request_serializer=stream__pb2.StreamDataRequest.SerializeToString,
             response_deserializer=stream__pb2.StreamDataResponse.FromString,
         )
+        self.StreamDataImmutable = channel.unary_stream(
+            "/apibara.node.v1alpha2.Stream/StreamDataImmutable",
+            request_serializer=stream__pb2.StreamDataRequest.SerializeToString,
+            response_deserializer=stream__pb2.StreamDataResponse.FromString,
+        )
 
 
 class StreamServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def StreamData(self, request_iterator, context):
+        """Stream data from the node (bi-directional)."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
+
+    def StreamDataImmutable(self, request, context):
         """Stream data from the node."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
@@ -35,6 +46,11 @@ def add_StreamServicer_to_server(servicer, server):
     rpc_method_handlers = {
         "StreamData": grpc.stream_stream_rpc_method_handler(
             servicer.StreamData,
+            request_deserializer=stream__pb2.StreamDataRequest.FromString,
+            response_serializer=stream__pb2.StreamDataResponse.SerializeToString,
+        ),
+        "StreamDataImmutable": grpc.unary_stream_rpc_method_handler(
+            servicer.StreamDataImmutable,
             request_deserializer=stream__pb2.StreamDataRequest.FromString,
             response_serializer=stream__pb2.StreamDataResponse.SerializeToString,
         ),
@@ -66,6 +82,35 @@ class Stream(object):
             request_iterator,
             target,
             "/apibara.node.v1alpha2.Stream/StreamData",
+            stream__pb2.StreamDataRequest.SerializeToString,
+            stream__pb2.StreamDataResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )
+
+    @staticmethod
+    def StreamDataImmutable(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            "/apibara.node.v1alpha2.Stream/StreamDataImmutable",
             stream__pb2.StreamDataRequest.SerializeToString,
             stream__pb2.StreamDataResponse.FromString,
             options,

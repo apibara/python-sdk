@@ -59,14 +59,15 @@
           name = "gen-proto";
           text = ''
             echo "Generate protocol proto files"
-            protoc \
+            python -m grpc_tools.protoc \
             -I=./protos/protocol \
             --python_out=./src/apibara/protocol/proto \
             --pyi_out=./src/apibara/protocol/proto \
+            --grpc_python_out=./src/apibara/protocol/proto \
             protos/protocol/*
 
             echo "Generate Starknet proto files"
-            protoc \
+            python -m grpc_tools.protoc \
             -I=./protos/starknet \
             --python_out=./src/apibara/starknet/proto \
             --pyi_out=./src/apibara/starknet/proto \

@@ -66,6 +66,36 @@ class StreamService:
         stream = StreamIter(ctx, iter, timeout)
         return client, stream
 
+    def stream_data_immutable(
+        self,
+        *,
+        filter: Optional[bytes] = None,
+        batch_size: Optional[int] = None,
+        finality: Optional[DataFinality.ValueType] = None,
+        cursor: Optional[Cursor] = None,
+        timeout=None,
+    ) -> "StreamIter":
+        """Start streaming data from the server.
+
+        Arguments
+        ---------
+        timeout: float
+            timeout in seconds for waiting messages from the server.
+        """
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
+        ctx = _Context()
+        request = StreamDataRequest(
+            stream_id=ctx.stream_id,
+            filter=filter,
+            starting_cursor=cursor,
+            batch_size=batch_size,
+            finality=finality,
+        )
+        iter = self._stub.StreamDataImmutable(request)
+        stream = StreamIter(ctx, iter, timeout)
+        return stream
+
 
 class StreamClient:
     def __init__(self, ctx: "_Context") -> None:

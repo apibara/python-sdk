@@ -16,10 +16,11 @@ DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
     b'\n\x0btypes.proto\x12\x19\x61pibara.starknet.v1alpha2"J\n\x0c\x46ieldElement\x12\r\n\x05lo_lo\x18\x01 \x01(\x06\x12\r\n\x05lo_hi\x18\x02 \x01(\x06\x12\r\n\x05hi_lo\x18\x03 \x01(\x06\x12\r\n\x05hi_hi\x18\x04 \x01(\x06\x62\x06proto3'
 )
 
-_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "types_pb2", globals())
+_globals = globals()
+_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "types_pb2", _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
     DESCRIPTOR._options = None
-    _FIELDELEMENT._serialized_start = 42
-    _FIELDELEMENT._serialized_end = 116
+    _globals["_FIELDELEMENT"]._serialized_start = 42
+    _globals["_FIELDELEMENT"]._serialized_end = 116
 # @@protoc_insertion_point(module_scope)
