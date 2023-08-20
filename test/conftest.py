@@ -24,3 +24,9 @@ def storage():
         yield storage
         # cleanup database
         storage.drop_database()
+
+
+@pytest.fixture(scope="function")
+def mongo_db():
+    with MongoDbContainer("mongo:latest") as mongo:
+        yield mongo.get_connection_url()

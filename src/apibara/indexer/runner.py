@@ -116,6 +116,8 @@ class IndexerRunner(Generic[UserContext, Filter]):
         while True:
             try:
                 await self._connect_and_stream(indexer, ctx)
+                # stream never ends, except when testing
+                return
             except Exception as exc:
                 logger.exception(f"indexer exception")
                 self._retry_count += 1
@@ -124,9 +126,17 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 if not reconnect.reconnect:
                     raise
 
-    async def _connect_and_stream(self, indexer: Indexer, ctx: Optional[UserContext]):
+    def _stream_data(self):
+        """Start streaming data.
+
+        This method is provided so that it can be mocked in tests.
+        """
         channel = self._channel()
         (client, stream) = StreamService(channel).stream_data(timeout=self._timeout)
+        return (client, stream, channel)
+
+    async def _connect_and_stream(self, indexer: Indexer, ctx: Optional[UserContext]):
+        (client, stream, _channel) = self._stream_data()
 
         config = indexer.initial_configuration()
         has_stored = self._indexer_storage.update_with_stored_configuration(config)
@@ -162,9 +172,6 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 assert (
                     len(message.data.data) <= 1
                 ), "indexer runner requires batch_size == 1"
-
-                if self._reconnect_to_avoid_disconnection is not None:
-                    _blocks_before_reconnect -= 1
 
                 if runner_state == "resync":
                     logger.debug("handle block resync")
@@ -207,8 +214,9 @@ class IndexerRunner(Generic[UserContext, Filter]):
                     continue
 
                 # invalidate any pending data, if any
+                should_invalidate = False
                 if pending_received and previous_end_cursor is not None:
-                    self._indexer_storage.invalidate(previous_end_cursor)
+                    should_invalidate = True
 
                 is_pending = message.data.finality == DataFinality.DATA_STATUS_PENDING
                 pending_received = is_pending
@@ -217,6 +225,12 @@ class IndexerRunner(Generic[UserContext, Filter]):
                 cursor = message.data.cursor
 
                 logger.debug(f"handle batch {cursor} - {end_cursor}")
+
+                if (
+                    self._reconnect_to_avoid_disconnection is not None
+                    and not is_pending
+                ):
+                    _blocks_before_reconnect -= 1
 
                 if is_pending:
                     create_storage = (
@@ -233,6 +247,11 @@ class IndexerRunner(Generic[UserContext, Filter]):
 
                 with create_storage(message.data.end_cursor) as storage:
                     additional_filter = None
+                    if should_invalidate:
+                        self._indexer_storage.invalidate(
+                            previous_end_cursor, session=storage._session
+                        )
+
                     for batch in message.data.data:
                         decoded_data = indexer.decode_data(batch)
                         info = Info(
@@ -268,7 +287,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
                     previous_end_cursor = message.data.end_cursor
 
                 if self._reconnect_to_avoid_disconnection is not None:
-                    if _blocks_before_reconnect <= 0 and not is_pending:
+                    if _blocks_before_reconnect <= 0:
                         _blocks_before_reconnect = (
                             self._reconnect_to_avoid_disconnection
                         )
