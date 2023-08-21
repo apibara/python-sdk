@@ -1,8 +1,14 @@
 Changelog
 =========
 
-Apibara Python SDK 0.7.3a1 (2023-08-01)
+Apibara Python SDK 0.7.3a5 (2023-08-21)
 ----------------------------------------
+
+Changed
+^^^^^^^
+
+ - Data is invalidated between pending blocks in the same db transaction as the
+   pending block handler.
 
 Addded
 ^^^^^^
