@@ -5,10 +5,10 @@ steps:
 - wait
 
 - label: ":python: :pytest: Pytest"
-  command: nix develop -c 'ci-test'
+  command: nix develop --sandbox -c 'ci-test'
 
 - wait
 
 - label: ":python: :hammer: Poetry Build"
-  command: nix develop -c 'ci-build'
+  command: nix develop --sandbox -c 'ci-build'
 
