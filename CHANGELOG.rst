@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Apibara Python SDK 0.7.5 (2023-11-15)
+----------------------------------------
+
+Addded
+^^^^^^
+
+ - Add unstable option :code:`_force_filter_from_script` to the :code:`IndexerRunner`
+   to always load the filter from the script, ignoring the filter stored in the
+   database. This option is not compatible with dynamic filters.
+
 Apibara Python SDK 0.7.4 (2023-11-15)
 ----------------------------------------
 
