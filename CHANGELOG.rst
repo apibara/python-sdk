@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Apibara Python SDK 0.7.4 (2023-11-15)
+----------------------------------------
+
+Addded
+^^^^^^
+
+ - Add new :code:`include_transaction` and :code:`include_receipt` options to
+   Starknet's event filters. These options allow indexers to reduce the amount
+   of data sent by the server, improving performance when indexing large amount
+   of data.
+
 Apibara Python SDK 0.7.3a5 (2023-08-21)
 ----------------------------------------
 
