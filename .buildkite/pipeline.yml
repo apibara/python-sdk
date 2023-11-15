@@ -5,7 +5,7 @@ steps:
 - wait
 
 - label: ":python: :pytest: Pytest"
-  command: nix develop --sandbox -c 'ci-test'
+  command: podman system service --time=0 unix:///var/run/docker.sock & nix develop --sandbox -c 'ci-test'
 
 - wait
 

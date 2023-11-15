@@ -111,6 +111,8 @@
             protobuf
             poetry
             gen-proto
+
+            docker-client
             ci-test
             ci-build
           ];
