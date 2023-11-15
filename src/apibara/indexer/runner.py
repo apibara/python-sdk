@@ -68,6 +68,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         client_options: Optional[List[Tuple[str, Any]]] = None,
         timeout: Optional[int] = None,
         _reconnect_to_avoid_disconnection: Optional[int] = None,
+        _force_filter_from_script: Optional[bool] = None,
     ) -> None:
         if config is None:
             config = IndexerRunnerConfiguration()
@@ -80,6 +81,7 @@ class IndexerRunner(Generic[UserContext, Filter]):
         self._timeout = timeout
         self._client_options = client_options
         self._reconnect_to_avoid_disconnection = _reconnect_to_avoid_disconnection
+        self._force_filter_from_script = _force_filter_from_script
 
     async def run(self, indexer: Indexer, *, ctx: Optional[UserContext] = None):
         """Run the indexer until stopped."""
@@ -139,7 +141,10 @@ class IndexerRunner(Generic[UserContext, Filter]):
         (client, stream, _channel) = self._stream_data()
 
         config = indexer.initial_configuration()
-        has_stored = self._indexer_storage.update_with_stored_configuration(config)
+        has_stored = self._indexer_storage.update_with_stored_configuration(
+            config,
+            ignore_filter=self._force_filter_from_script,
+        )
         if has_stored:
             # invalidate old pending data, if any
             self._indexer_storage.invalidate(config.starting_cursor)

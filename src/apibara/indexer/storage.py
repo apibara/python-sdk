@@ -82,7 +82,12 @@ class IndexerStorage(Generic[Filter]):
             }
         )
 
-    def update_with_stored_configuration(self, initial: IndexerConfiguration[Filter]):
+    def update_with_stored_configuration(
+        self,
+        initial: IndexerConfiguration[Filter],
+        *,
+        ignore_filter: Optional[bool] = None,
+    ):
         logger.debug("update config with stored version")
 
         stored = self.db["_apibara"].find_one({"indexer_id": self._indexer_id})
@@ -90,10 +95,14 @@ class IndexerStorage(Generic[Filter]):
             self._initialize_configuration(initial)
             return False
 
-        encoded_filter = stored.get("filter")
-        if encoded_filter is None:
-            raise RuntimeError("indexer filter is missing")
-        initial.filter.parse(encoded_filter)
+        if not ignore_filter:
+            logger.debug("loading filter from storage")
+            encoded_filter = stored.get("filter")
+            if encoded_filter is None:
+                raise RuntimeError("indexer filter is missing")
+            initial.filter.parse(encoded_filter)
+        else:
+            logger.debug("using filter from script")
 
         cursor = stored.get("cursor")
         if cursor is not None:
