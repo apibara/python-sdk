@@ -7,7 +7,7 @@ from grpc.aio import secure_channel
 
 from apibara.protocol import StreamAddress, StreamService, credentials_with_auth_token
 from apibara.protocol.proto.stream_pb2 import DataFinality
-from apibara.starknet import Block, EventFilter, Filter, felt
+from apibara.starknet import Block, EventFilter, Filter, felt, starknet_cursor
 from apibara.starknet.filter import StateUpdateFilter, StorageDiffFilter
 
 ETH_DECIMALS = 18
@@ -23,7 +23,7 @@ def to_decimal(amount: int) -> Decimal:
 
 async def main():
     address = felt.from_hex(
-        "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004d00"
+        "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
     )
 
     # `Transfer` selector.
@@ -42,36 +42,38 @@ async def main():
 
     filter = (
         Filter()
-        .with_header(weak=True)
-        .add_event(EventFilter().with_from_address(address).with_keys([transfer_key]))
-        .with_state_update(
-            StateUpdateFilter().add_storage_diff(
-                StorageDiffFilter().with_contract_address(address)
-            )
+        .with_header(weak=False)
+        .add_event(
+            EventFilter()
+            .with_from_address(address)
+            .with_keys([transfer_key])
+            .with_include_receipt(False)
+            .with_include_transaction(True)
         )
         .encode()
     )
 
+    print("sending configuration")
     await client.configure(
         filter=filter,
         finality=DataFinality.DATA_STATUS_ACCEPTED,
-        batch_size=10,
+        batch_size=1,
+        cursor=starknet_cursor(300_000),
     )
 
+    print("starting stream")
     block = Block()
     async for message in stream:
-        if message.data is not None:
-            print(message.data.end_cursor.order_key)
-            print(len(message.data.data))
-            continue
-        else:
+        if message.data is None:
             print(message)
             continue
+        else:
             for batch in message.data.data:
                 block.ParseFromString(batch)
+                num_events = len(block.events)
 
                 print(
-                    f"B {block.header.block_number} / {felt.to_hex(block.header.block_hash)}"
+                    f"B {block.header.block_number} / {felt.to_hex(block.header.block_hash)} ({num_events} events)"
                 )
 
                 for event_with_tx in block.events:
@@ -87,9 +89,9 @@ async def main():
                     )
                     amount = to_decimal(amount)
 
-                    print(f"T {from_addr} => {to_addr}")
-                    print(f" Amount: {amount} ETH")
-                    print(f"Tx Hash: {tx_hash}")
+                    print(f"  T {from_addr} => {to_addr}")
+                    print(f"    Amount: {amount} ETH")
+                    print(f"    Tx Hash: {tx_hash}")
                     print()
 
 
