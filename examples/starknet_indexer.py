@@ -47,7 +47,11 @@ class TokenIndexer(StarkNetIndexer):
             filter=Filter()
             .with_header(weak=True)
             .add_event(
-                EventFilter().with_from_address(eth_address).with_keys([transfer_key])
+                EventFilter()
+                .with_from_address(eth_address)
+                .with_keys([transfer_key])
+                .with_include_receipt(False)
+                .with_include_transaction(True)
             ),
             starting_cursor=starknet_cursor(830_000),
             finality=DataFinality.DATA_STATUS_PENDING,
@@ -74,13 +78,13 @@ class TokenIndexer(StarkNetIndexer):
         logger.info(f"Block #{block_number} {block_hash}")
         for event_with_tx in data.events:
             event = event_with_tx.event
-            receipt = event_with_tx.receipt
+            transaction = event_with_tx.transaction
 
-            tx_hash = receipt.transaction_hash
+            tx_hash = transaction.meta.hash
             src = felt.to_hex(event.data[0])[:6]
             dest = felt.to_hex(event.data[1])[:6]
-            _event_id = f"{felt.to_hex(tx_hash)}_{event.index}"
-            print(f"  Transfer from {src}... to {dest}...")
+            event_id = f"{felt.to_hex(tx_hash)}_{event.index}"
+            print(f"  Transfer from {src}... to {dest}... ({event_id})")
 
 
 async def main(argv):
@@ -94,6 +98,12 @@ async def main(argv):
             storage_url="mongodb://apibara:apibara@localhost:27017",
             token=AUTH_TOKEN,
         ),
+        # Increase max message size because ETH Transfer events
+        # produce a lot of data per block.
+        client_options=[
+            ("grpc.max_send_message_length", 256 * 1024 * 1024),
+            ("grpc.max_receive_message_length", 256 * 1024 * 1024),
+        ],
         reset_state=args.reset,
     )
 

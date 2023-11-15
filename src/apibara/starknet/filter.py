@@ -373,6 +373,20 @@ class EventFilter:
         self._inner.data.extend(data)
         return self
 
+    def with_include_transaction(self, include: bool) -> "EventFilter":
+        """
+        Include the transaction that generated the event.
+        """
+        self._inner.include_transaction = include
+        return self
+
+    def with_include_receipt(self, include: bool) -> "EventFilter":
+        """
+        Include the receipt of the transaction that generated the event.
+        """
+        self._inner.include_receipt = include
+        return self
+
     def encode(self) -> proto.EventFilter:
         return self._inner
 
