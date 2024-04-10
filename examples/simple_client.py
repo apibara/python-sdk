@@ -69,7 +69,7 @@ async def main():
                 num_events = len(block.events)
 
                 print(
-                    f"B {block.header.block_number} / {felt.to_hex(block.header.block_hash)} ({num_events} events)"
+                    f"B {block.header.block_number} / {felt.to_hex(block.header.block_hash)} ({num_events} events) (Starknet {block.header.starknet_version})"
                 )
 
                 for event_with_tx in block.events:

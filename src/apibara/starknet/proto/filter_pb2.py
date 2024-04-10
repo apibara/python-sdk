@@ -15,44 +15,45 @@ DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
     b"\n\x0c\x66ilter.proto\x12\x19\x61pibara.starknet.v1alpha2\x1a\x0btypes.proto\"\xc3\x02\n\x06\x46ilter\x12\x37\n\x06header\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.HeaderFilter\x12\x42\n\x0ctransactions\x18\x02 \x03(\x0b\x32,.apibara.starknet.v1alpha2.TransactionFilter\x12\x42\n\x0cstate_update\x18\x03 \x01(\x0b\x32,.apibara.starknet.v1alpha2.StateUpdateFilter\x12\x36\n\x06\x65vents\x18\x04 \x03(\x0b\x32&.apibara.starknet.v1alpha2.EventFilter\x12@\n\x08messages\x18\x05 \x03(\x0b\x32..apibara.starknet.v1alpha2.L2ToL1MessageFilter\"\x1c\n\x0cHeaderFilter\x12\x0c\n\x04weak\x18\x01 \x01(\x08\"\xfd\x03\n\x11TransactionFilter\x12I\n\tinvoke_v0\x18\x01 \x01(\x0b\x32\x34.apibara.starknet.v1alpha2.InvokeTransactionV0FilterH\x00\x12I\n\tinvoke_v1\x18\x02 \x01(\x0b\x32\x34.apibara.starknet.v1alpha2.InvokeTransactionV1FilterH\x00\x12\x44\n\x06\x64\x65ploy\x18\x03 \x01(\x0b\x32\x32.apibara.starknet.v1alpha2.DeployTransactionFilterH\x00\x12\x46\n\x07\x64\x65\x63lare\x18\x04 \x01(\x0b\x32\x33.apibara.starknet.v1alpha2.DeclareTransactionFilterH\x00\x12K\n\nl1_handler\x18\x05 \x01(\x0b\x32\x35.apibara.starknet.v1alpha2.L1HandlerTransactionFilterH\x00\x12S\n\x0e\x64\x65ploy_account\x18\x06 \x01(\x0b\x32\x39.apibara.starknet.v1alpha2.DeployAccountTransactionFilterH\x00\x12\x18\n\x10include_reverted\x18\x07 \x01(\x08\x42\x08\n\x06\x66ilter\"\xe0\x01\n\x19InvokeTransactionV0Filter\x12\x41\n\x10\x63ontract_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x45\n\x14\x65ntry_point_selector\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x39\n\x08\x63\x61lldata\x18\x03 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\x97\x01\n\x19InvokeTransactionV1Filter\x12?\n\x0esender_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x39\n\x08\x63\x61lldata\x18\x03 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\xe5\x01\n\x17\x44\x65ployTransactionFilter\x12\x46\n\x15\x63ontract_address_salt\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12;\n\nclass_hash\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x45\n\x14\x63onstructor_calldata\x18\x04 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\x98\x01\n\x18\x44\x65\x63lareTransactionFilter\x12;\n\nclass_hash\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12?\n\x0esender_address\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\xe1\x01\n\x1aL1HandlerTransactionFilter\x12\x41\n\x10\x63ontract_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x45\n\x14\x65ntry_point_selector\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x39\n\x08\x63\x61lldata\x18\x03 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\xec\x01\n\x1e\x44\x65ployAccountTransactionFilter\x12\x46\n\x15\x63ontract_address_salt\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12;\n\nclass_hash\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x45\n\x14\x63onstructor_calldata\x18\x04 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\xa6\x01\n\x13L2ToL1MessageFilter\x12;\n\nto_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x38\n\x07payload\x18\x02 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x18\n\x10include_reverted\x18\x03 \x01(\x08\"\xda\x02\n\x0b\x45ventFilter\x12=\n\x0c\x66rom_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x35\n\x04keys\x18\x02 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x35\n\x04\x64\x61ta\x18\x03 \x03(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x1d\n\x10include_reverted\x18\x04 \x01(\x08H\x00\x88\x01\x01\x12 \n\x13include_transaction\x18\x05 \x01(\x08H\x01\x88\x01\x01\x12\x1c\n\x0finclude_receipt\x18\x06 \x01(\x08H\x02\x88\x01\x01\x42\x13\n\x11_include_revertedB\x16\n\x14_include_transactionB\x12\n\x10_include_receipt\"\xc8\x03\n\x11StateUpdateFilter\x12\x43\n\rstorage_diffs\x18\x01 \x03(\x0b\x32,.apibara.starknet.v1alpha2.StorageDiffFilter\x12M\n\x12\x64\x65\x63lared_contracts\x18\x02 \x03(\x0b\x32\x31.apibara.starknet.v1alpha2.DeclaredContractFilter\x12M\n\x12\x64\x65ployed_contracts\x18\x03 \x03(\x0b\x32\x31.apibara.starknet.v1alpha2.DeployedContractFilter\x12<\n\x06nonces\x18\x04 \x03(\x0b\x32,.apibara.starknet.v1alpha2.NonceUpdateFilter\x12H\n\x10\x64\x65\x63lared_classes\x18\x05 \x03(\x0b\x32..apibara.starknet.v1alpha2.DeclaredClassFilter\x12H\n\x10replaced_classes\x18\x06 \x03(\x0b\x32..apibara.starknet.v1alpha2.ReplacedClassFilter\"V\n\x11StorageDiffFilter\x12\x41\n\x10\x63ontract_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"U\n\x16\x44\x65\x63laredContractFilter\x12;\n\nclass_hash\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\x98\x01\n\x13\x44\x65\x63laredClassFilter\x12;\n\nclass_hash\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x44\n\x13\x63ompiled_class_hash\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\x95\x01\n\x13ReplacedClassFilter\x12\x41\n\x10\x63ontract_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12;\n\nclass_hash\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\x98\x01\n\x16\x44\x65ployedContractFilter\x12\x41\n\x10\x63ontract_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12;\n\nclass_hash\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\"\x8e\x01\n\x11NonceUpdateFilter\x12\x41\n\x10\x63ontract_address\x18\x01 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElement\x12\x36\n\x05nonce\x18\x02 \x01(\x0b\x32'.apibara.starknet.v1alpha2.FieldElementb\x06proto3"
 )
 
-_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "filter_pb2", globals())
+_globals = globals()
+_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "filter_pb2", _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
     DESCRIPTOR._options = None
-    _FILTER._serialized_start = 57
-    _FILTER._serialized_end = 380
-    _HEADERFILTER._serialized_start = 382
-    _HEADERFILTER._serialized_end = 410
-    _TRANSACTIONFILTER._serialized_start = 413
-    _TRANSACTIONFILTER._serialized_end = 922
-    _INVOKETRANSACTIONV0FILTER._serialized_start = 925
-    _INVOKETRANSACTIONV0FILTER._serialized_end = 1149
-    _INVOKETRANSACTIONV1FILTER._serialized_start = 1152
-    _INVOKETRANSACTIONV1FILTER._serialized_end = 1303
-    _DEPLOYTRANSACTIONFILTER._serialized_start = 1306
-    _DEPLOYTRANSACTIONFILTER._serialized_end = 1535
-    _DECLARETRANSACTIONFILTER._serialized_start = 1538
-    _DECLARETRANSACTIONFILTER._serialized_end = 1690
-    _L1HANDLERTRANSACTIONFILTER._serialized_start = 1693
-    _L1HANDLERTRANSACTIONFILTER._serialized_end = 1918
-    _DEPLOYACCOUNTTRANSACTIONFILTER._serialized_start = 1921
-    _DEPLOYACCOUNTTRANSACTIONFILTER._serialized_end = 2157
-    _L2TOL1MESSAGEFILTER._serialized_start = 2160
-    _L2TOL1MESSAGEFILTER._serialized_end = 2326
-    _EVENTFILTER._serialized_start = 2329
-    _EVENTFILTER._serialized_end = 2675
-    _STATEUPDATEFILTER._serialized_start = 2678
-    _STATEUPDATEFILTER._serialized_end = 3134
-    _STORAGEDIFFFILTER._serialized_start = 3136
-    _STORAGEDIFFFILTER._serialized_end = 3222
-    _DECLAREDCONTRACTFILTER._serialized_start = 3224
-    _DECLAREDCONTRACTFILTER._serialized_end = 3309
-    _DECLAREDCLASSFILTER._serialized_start = 3312
-    _DECLAREDCLASSFILTER._serialized_end = 3464
-    _REPLACEDCLASSFILTER._serialized_start = 3467
-    _REPLACEDCLASSFILTER._serialized_end = 3616
-    _DEPLOYEDCONTRACTFILTER._serialized_start = 3619
-    _DEPLOYEDCONTRACTFILTER._serialized_end = 3771
-    _NONCEUPDATEFILTER._serialized_start = 3774
-    _NONCEUPDATEFILTER._serialized_end = 3916
+    _globals["_FILTER"]._serialized_start = 57
+    _globals["_FILTER"]._serialized_end = 380
+    _globals["_HEADERFILTER"]._serialized_start = 382
+    _globals["_HEADERFILTER"]._serialized_end = 410
+    _globals["_TRANSACTIONFILTER"]._serialized_start = 413
+    _globals["_TRANSACTIONFILTER"]._serialized_end = 922
+    _globals["_INVOKETRANSACTIONV0FILTER"]._serialized_start = 925
+    _globals["_INVOKETRANSACTIONV0FILTER"]._serialized_end = 1149
+    _globals["_INVOKETRANSACTIONV1FILTER"]._serialized_start = 1152
+    _globals["_INVOKETRANSACTIONV1FILTER"]._serialized_end = 1303
+    _globals["_DEPLOYTRANSACTIONFILTER"]._serialized_start = 1306
+    _globals["_DEPLOYTRANSACTIONFILTER"]._serialized_end = 1535
+    _globals["_DECLARETRANSACTIONFILTER"]._serialized_start = 1538
+    _globals["_DECLARETRANSACTIONFILTER"]._serialized_end = 1690
+    _globals["_L1HANDLERTRANSACTIONFILTER"]._serialized_start = 1693
+    _globals["_L1HANDLERTRANSACTIONFILTER"]._serialized_end = 1918
+    _globals["_DEPLOYACCOUNTTRANSACTIONFILTER"]._serialized_start = 1921
+    _globals["_DEPLOYACCOUNTTRANSACTIONFILTER"]._serialized_end = 2157
+    _globals["_L2TOL1MESSAGEFILTER"]._serialized_start = 2160
+    _globals["_L2TOL1MESSAGEFILTER"]._serialized_end = 2326
+    _globals["_EVENTFILTER"]._serialized_start = 2329
+    _globals["_EVENTFILTER"]._serialized_end = 2675
+    _globals["_STATEUPDATEFILTER"]._serialized_start = 2678
+    _globals["_STATEUPDATEFILTER"]._serialized_end = 3134
+    _globals["_STORAGEDIFFFILTER"]._serialized_start = 3136
+    _globals["_STORAGEDIFFFILTER"]._serialized_end = 3222
+    _globals["_DECLAREDCONTRACTFILTER"]._serialized_start = 3224
+    _globals["_DECLAREDCONTRACTFILTER"]._serialized_end = 3309
+    _globals["_DECLAREDCLASSFILTER"]._serialized_start = 3312
+    _globals["_DECLAREDCLASSFILTER"]._serialized_end = 3464
+    _globals["_REPLACEDCLASSFILTER"]._serialized_start = 3467
+    _globals["_REPLACEDCLASSFILTER"]._serialized_end = 3616
+    _globals["_DEPLOYEDCONTRACTFILTER"]._serialized_start = 3619
+    _globals["_DEPLOYEDCONTRACTFILTER"]._serialized_end = 3771
+    _globals["_NONCEUPDATEFILTER"]._serialized_start = 3774
+    _globals["_NONCEUPDATEFILTER"]._serialized_end = 3916
 # @@protoc_insertion_point(module_scope)
