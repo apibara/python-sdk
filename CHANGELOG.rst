@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Apibara Python SDK 0.8.0 (2024-04-10)
+----------------------------------------
+
+Addded
+^^^^^^
+
+- Update StarkNet definitions to add support for StarkNet 0.13.1.
+
 Apibara Python SDK 0.7.5 (2023-11-15)
 ----------------------------------------
 
