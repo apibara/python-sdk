@@ -34,11 +34,9 @@ async def main():
     )
 
     channel = secure_channel(
-        StreamAddress.StarkNet.Mainnet,
+        StreamAddress.StarkNet.Sepolia,
         credentials_with_auth_token(AUTH_TOKEN, ssl_channel_credentials()),
     )
-
-    (client, stream) = StreamService(channel).stream_data()
 
     filter = (
         Filter()
@@ -53,15 +51,13 @@ async def main():
         .encode()
     )
 
-    print("sending configuration")
-    await client.configure(
+    stream = StreamService(channel).stream_data_immutable(
         filter=filter,
-        finality=DataFinality.DATA_STATUS_ACCEPTED,
+        finality=DataFinality.DATA_STATUS_FINALIZED,
         batch_size=1,
-        cursor=starknet_cursor(300_000),
+        cursor=starknet_cursor(18_000),
     )
 
-    print("starting stream")
     block = Block()
     async for message in stream:
         if message.data is None:
@@ -89,10 +85,10 @@ async def main():
                     )
                     amount = to_decimal(amount)
 
-                    print(f"  T {from_addr} => {to_addr}")
-                    print(f"    Amount: {amount} ETH")
-                    print(f"    Tx Hash: {tx_hash}")
-                    print()
+                    # print(f"  T {from_addr} => {to_addr}")
+                    # print(f"    Amount: {amount} ETH")
+                    # print(f"    Tx Hash: {tx_hash}")
+                    # print()
 
 
 if __name__ == "__main__":

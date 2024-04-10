@@ -19,8 +19,7 @@ from .proto.stream_pb2 import (
 @dataclass
 class StarkNetStreamAddress:
     Mainnet: ClassVar[str] = "mainnet.starknet.a5a.ch"
-    Goerli: ClassVar[str] = "goerli.starknet.a5a.ch"
-    Goerli2: ClassVar[str] = "goerli-2.starknet.a5a.ch"
+    Sepolia: ClassVar[str] = "sepolia.starknet.a5a.ch"
 
 
 @dataclass

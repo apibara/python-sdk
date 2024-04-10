@@ -12,12 +12,11 @@ After you [installed](/docs/python-sdk) the Python SDK, you can start indexing b
 
 The SDK provides two ways to interact with [streams](/docs/streaming-protocol):
 
- - using the high-level `Indexer` and `IndexerRunner` components. The SDK
- provides an indexer implementation that uses MongoDB for storage.
- - using the low-level `StreamService` to interact directly with the stream.
- This choice is the best for teams that want maximum control over their indexer
- or that are building non-traditional applications.
-
+- using the high-level `Indexer` and `IndexerRunner` components. The SDK
+  provides an indexer implementation that uses MongoDB for storage.
+- using the low-level `StreamService` to interact directly with the stream.
+  This choice is the best for teams that want maximum control over their indexer
+  or that are building non-traditional applications.
 
 ## `Indexer` and `IndexerRunner`
 
@@ -25,21 +24,20 @@ Developers can implement the `Indexer` interface and then run it with the `Index
 
 The `Indexer` methods to implement are:
 
- - `indexer_id(self) -> str`: unique indexer id, used when storing the indexer state to Mongo.
- - `initial_configuration(self) -> IndexerConfiguration`: returns the initial
- stream configuration. Here you can specify the data your application requires.
- - `handle_data(self, info: Info, data: Data)`: handle a new message from the stream.
- - `handle_pending_data(self, info: Info, data: Data)`: handle a new message
- from the stream, called with pending data.
- - `handle_invalidate(self, info: Info, cursor: Cursor)`: handle a chain
- reorganization. `cursor` refers to the highest (most recent) block in common
- between the old chain and the new chain.
- - `handle_reconnect(self, exc: Exception, retry_count: int) -> Reconnect`:
- called when the indexer disconnects from the stream because of the given
- exception. You can use this callback to control reconnection behavior.
- - `encode_filter(self, filter: Filter) -> bytes`: encode filter. 
- - `decode_data(self, raw: bytes) -> Data`: decode raw data.
-
+- `indexer_id(self) -> str`: unique indexer id, used when storing the indexer state to Mongo.
+- `initial_configuration(self) -> IndexerConfiguration`: returns the initial
+  stream configuration. Here you can specify the data your application requires.
+- `handle_data(self, info: Info, data: Data)`: handle a new message from the stream.
+- `handle_pending_data(self, info: Info, data: Data)`: handle a new message
+  from the stream, called with pending data.
+- `handle_invalidate(self, info: Info, cursor: Cursor)`: handle a chain
+  reorganization. `cursor` refers to the highest (most recent) block in common
+  between the old chain and the new chain.
+- `handle_reconnect(self, exc: Exception, retry_count: int) -> Reconnect`:
+  called when the indexer disconnects from the stream because of the given
+  exception. You can use this callback to control reconnection behavior.
+- `encode_filter(self, filter: Filter) -> bytes`: encode filter.
+- `decode_data(self, raw: bytes) -> Data`: decode raw data.
 
 Since all applications that use StarkNet data need to encode the filter and
 decode data in the same way, we provide a `apibara.starknet.StarkNetIndexer` class that is
@@ -93,17 +91,17 @@ class ExampleIndexer(StarkNetIndexer):
 The `IndexerRunnerConfiguration` object is used to store the indexer configuration.
 The options are:
 
- - `stream_url`: the URL of the stream,
- - `stream_ssl`: connect to the stream using HTTP/2 SSL,
- - `storage_url`: a MongoDB connection string to store the indexer state and the application data.
+- `stream_url`: the URL of the stream,
+- `stream_ssl`: connect to the stream using HTTP/2 SSL,
+- `storage_url`: a MongoDB connection string to store the indexer state and the application data.
 
-The following configuration is used to connect to the StarkNet Goerli stream and store data to a MongoDB instance running locally.
+The following configuration is used to connect to the Starknet Sepolia stream and store data to a MongoDB instance running locally.
 
 ```python
 from apibara.indexer import IndexerRunnerConfiguration
 
 config = IndexerRunnerConfiguration(
-    stream_url="goerli.starknet.a5a.ch:443",
+    stream_url="sepolia.starknet.a5a.ch:443",
     apibara_ssl=True,
     storage_url="mongodb://apibara:apibara@localhost:27017",
 ),
@@ -129,7 +127,6 @@ await runner.run(
 ## Filtering data
 
 Streams include only the data needed by your application, this is achieved by specifying _filters_. Filters are stream-specific, refer to the reference to learn more about the data available for your chain.
-
 
 ## Chain-aware database storage
 

@@ -1,8 +1,8 @@
 {
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.poetry2nix = {
-    url = "github:nix-community/poetry2nix?ref=1.42.1";
+    url = "github:nix-community/poetry2nix";
     inputs.nixpkgs.follows = "nixpkgs";
   };
   inputs.pre-commit-hooks = {
@@ -16,13 +16,15 @@
           inherit system;
         };
 
-        apibara-sdk = pkgs.poetry2nix.mkPoetryEnv {
+        p2n = (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; });
+
+        apibara-sdk = p2n.mkPoetryEnv {
           python = pkgs.python310;
           projectDir = ./.;
           editablePackageSources = {
             apibara = if builtins.getEnv "PROJECT_DIR" == "" then ./src else builtins.getEnv "PROJECT_DIR";
           };
-          overrides = pkgs.poetry2nix.overrides.withDefaults (
+          overrides = p2n.overrides.withDefaults (
             self: super: {
               grpcio = super.grpcio.override {
                 preferWheel = false;

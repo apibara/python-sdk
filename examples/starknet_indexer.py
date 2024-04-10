@@ -53,7 +53,7 @@ class TokenIndexer(StarkNetIndexer):
                 .with_include_receipt(False)
                 .with_include_transaction(True)
             ),
-            starting_cursor=starknet_cursor(830_000),
+            starting_cursor=starknet_cursor(18_000),
             finality=DataFinality.DATA_STATUS_PENDING,
         )
 
@@ -94,7 +94,7 @@ async def main(argv):
 
     runner = IndexerRunner(
         config=IndexerRunnerConfiguration(
-            stream_url="goerli.starknet.a5a.ch:443",
+            stream_url="sepolia.starknet.a5a.ch:443",
             storage_url="mongodb://apibara:apibara@localhost:27017",
             token=AUTH_TOKEN,
         ),

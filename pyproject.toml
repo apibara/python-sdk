@@ -6,23 +6,19 @@ authors = ["Francesco Ceccon <francesco@apibara.com>"]
 license = "Apache-2.0"
 readme = "README.rst"
 homepage = "https://www.apibara.com"
-repository= "https://github.com/apibara/python-sdk"
-keywords = [
-    "ethereum",
-    "web3",
-    "starknet"
-]
+repository = "https://github.com/apibara/python-sdk"
+keywords = ["ethereum", "web3", "starknet"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10"
+    "Programming Language :: Python :: 3.10",
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.8,<3.13"
 grpcio = ">=1.50,<2.0"
 protobuf = ">=4.20,<5"
 pymongo = "^4.3.3"
@@ -38,7 +34,7 @@ black = "^22.12.0"
 isort = "^5.11.4"
 pytest-asyncio = "^0.20.3"
 grpcio-tools = ">=1.50,<2.0"
-testcontainers = {extras = ["mongodb"], version = "^3.7.1"}
+testcontainers = { extras = ["mongodb"], version = "^3.7.1" }
 
 [tool.black]
 line-length = 88
