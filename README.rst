@@ -4,7 +4,7 @@ Apibara Python SDK
 .. warning::
     This SDK is alpha software. The API will change drastically until the beta.
 
-    `Open an issue on GitHub <https://github.com/apibara/python-sdk>`_ to report bugs or provide feedback.
+    `Open an issue on GitHub <https://github.com/apibara/python-sdk/issues>`_ to report bugs or provide feedback.
 
 
 Build web3-powered applications in Python. 
